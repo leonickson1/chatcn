@@ -395,7 +395,7 @@ export default function ComposerPage() {
           <code className="bg-[#F4F4F5] px-1.5 py-0.5 rounded text-[13px] text-[#18181B]">+</code>{" "}
           button that opens a popout menu for attachments. Click it in the demo above to see it in action.
         </p>
-        <PreviewTabs preview={<AttachmentDemo />} code={attachmentCode} height={120} />
+        <PreviewTabs preview={<AttachmentDemo />} code={attachmentCode} height={200} />
       </div>
 
       {/* Drag & Drop */}
@@ -408,7 +408,7 @@ export default function ComposerPage() {
           <code className="bg-[#F4F4F5] px-1.5 py-0.5 rounded text-[13px] text-[#18181B]">+</code>{" "}
           button menu and clipboard paste.
         </p>
-        <PreviewTabs preview={<DragDropDemo />} code={dragDropCode} height={120} />
+        <PreviewTabs preview={<DragDropDemo />} code={dragDropCode} height={200} />
       </div>
 
       {/* Reply Mode */}
@@ -418,7 +418,7 @@ export default function ComposerPage() {
           When replying to a message, the composer shows a preview of the quoted message above the input.
           The user can dismiss the reply with the X button.
         </p>
-        <PreviewTabs preview={<ReplyModeDemo />} code={replyModeCode} height={150} />
+        <PreviewTabs preview={<ReplyModeDemo />} code={replyModeCode} height={220} />
       </div>
 
       {/* Auto-Resize */}
@@ -428,7 +428,7 @@ export default function ComposerPage() {
           The textarea automatically grows as you type multi-line messages, up to a configurable max height.
           This behavior is built-in and requires no additional configuration.
         </p>
-        <PreviewTabs preview={<AutoResizeDemo />} code={autoResizeCode} height={120} />
+        <PreviewTabs preview={<AutoResizeDemo />} code={autoResizeCode} height={200} />
       </div>
 
       {/* Props Table */}

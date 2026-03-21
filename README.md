@@ -43,7 +43,7 @@ Beautiful, ready-to-use chat UI components for React. Built on shadcn/ui. Styled
 ## Quick Start
 
 ```bash
-npx shadcn@latest add https://chatcn.vercel.app/r/chat.json
+npx shadcn@latest add https://chatcn-iota.vercel.app/r/chat.json
 ```
 
 Then import and use:
@@ -68,7 +68,7 @@ export default function Chat() {
 
 ## Documentation
 
-Visit [chatcn.vercel.app/docs](https://chatcn.vercel.app/docs) for full documentation, live demos, and API reference.
+Visit [chatcn-iota.vercel.app/docs](https://chatcn-iota.vercel.app/docs) for full documentation, live demos, and API reference.
 
 ## License
 

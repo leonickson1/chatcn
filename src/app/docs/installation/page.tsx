@@ -31,7 +31,7 @@ function CodeBlock({ code }: { code: string }) {
   )
 }
 
-const installCmd = `npx shadcn@latest add https://chatcn.vercel.app/r/chat.json`
+const installCmd = `npx shadcn@latest add https://chatcn-iota.vercel.app/r/chat.json`
 
 const quickStartCode = `import {
   ChatProvider,
