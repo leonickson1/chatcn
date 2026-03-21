@@ -963,176 +963,327 @@ const features = [
   },
 ]
 
-// ─── Demo code strings ───────────────────────────────────────────────────────
+// ─── Demo code generators (theme-aware) ─────────────────────────────────────
 
-const messagingCode = `import { useState, useCallback } from "react"
+function getMessagingCode(theme: ChatTheme) {
+  return `"use client"
+
+import { useState, useCallback } from "react"
 import {
-  ChatProvider, ChatMessages, ChatComposer,
+  ChatProvider,
+  ChatMessages,
+  ChatComposer,
 } from "@/components/ui/chat"
-import type { ChatUser, ChatMessageData, ChatTheme } from "@/components/ui/chat"
+import type { ChatUser, ChatMessageData } from "@/components/ui/chat"
 
-const currentUser: ChatUser = { id: "user-1", name: "You", status: "online" }
+const currentUser: ChatUser = {
+  id: "user-1",
+  name: "You",
+  status: "online",
+}
 
-export function MessagingApp({ theme = "lunar" }: { theme?: ChatTheme }) {
+const initialMessages: ChatMessageData[] = [
+  {
+    id: "1",
+    senderId: "user-2",
+    senderName: "Alex Chen",
+    text: "Hey! Have you had a chance to look at the new design system?",
+    timestamp: new Date(Date.now() - 300000),
+    status: "read",
+  },
+  {
+    id: "2",
+    senderId: "user-2",
+    senderName: "Alex Chen",
+    text: "I pushed the updated Figma link to the channel",
+    timestamp: new Date(Date.now() - 240000),
+    status: "read",
+  },
+  {
+    id: "3",
+    senderId: "user-1",
+    senderName: "You",
+    text: "Yeah, just opened it. The component library looks incredible",
+    timestamp: new Date(Date.now() - 180000),
+    status: "delivered",
+    replyTo: {
+      id: "1",
+      senderName: "Alex Chen",
+      text: "Hey! Have you had a chance to look at the new design system?",
+    },
+  },
+]
+
+export default function MessagingApp() {
   const [messages, setMessages] = useState<ChatMessageData[]>(initialMessages)
+  const [replyingTo, setReplyingTo] = useState<ChatMessageData | null>(null)
 
-  const handleSend = useCallback((text: string) => {
-    setMessages((prev) => [...prev, {
-      id: crypto.randomUUID(),
-      senderId: currentUser.id,
-      senderName: currentUser.name,
-      text,
-      timestamp: new Date(),
-      status: "sent",
-    }])
-  }, [])
+  const handleSend = useCallback(
+    (text: string) => {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          senderId: currentUser.id,
+          senderName: currentUser.name,
+          text,
+          timestamp: new Date(),
+          status: "sent",
+          replyTo: replyingTo
+            ? { id: replyingTo.id, senderName: replyingTo.senderName, text: replyingTo.text || "" }
+            : undefined,
+        },
+      ])
+      setReplyingTo(null)
+    },
+    [replyingTo]
+  )
 
   return (
     <ChatProvider
       currentUser={currentUser}
-      theme={theme}
+      theme="${theme}"
       onReply={(msg) => setReplyingTo(msg)}
-      onReaction={(id, emoji) => handleReaction(id, emoji)}
+      onReaction={(id, emoji) => {
+        // Handle reaction add/remove
+        console.log("Reaction:", id, emoji)
+      }}
     >
-      <div className="flex h-screen">
-        {/* Sidebar with conversations */}
-        <aside className="w-72 border-r">
-          {conversations.map((c) => (
-            <ChatConversationItem key={c.id} conversation={c} />
-          ))}
-        </aside>
-
-        {/* Chat area */}
-        <main className="flex flex-1 flex-col">
-          <ChatMessages messages={messages} />
-          <ChatComposer
-            onSend={handleSend}
-            onFileUpload={(files) => uploadFiles(files)}
-          />
-        </main>
-      </div>
-    </ChatProvider>
-  )
-}`
-
-const supportCode = `import { useState, useCallback } from "react"
-import {
-  ChatProvider, ChatMessages, ChatComposer,
-} from "@/components/ui/chat"
-import type { ChatUser, ChatMessageData, ChatTheme } from "@/components/ui/chat"
-
-const currentUser: ChatUser = { id: "customer-1", name: "Customer" }
-
-export function SupportWidget({ theme = "ember" }: { theme?: ChatTheme }) {
-  const [messages, setMessages] = useState<ChatMessageData[]>([
-    {
-      id: "welcome",
-      senderId: "agent-1",
-      senderName: "Support Agent",
-      text: "Hi there! 👋 How can I help you today?",
-      timestamp: new Date(),
-      status: "read",
-    },
-  ])
-
-  const handleSend = useCallback((text: string) => {
-    setMessages((prev) => [...prev, {
-      id: crypto.randomUUID(),
-      senderId: currentUser.id,
-      senderName: currentUser.name,
-      text,
-      timestamp: new Date(),
-      status: "sent",
-    }])
-  }, [])
-
-  return (
-    <ChatProvider currentUser={currentUser} theme={theme}>
-      <div className="w-[400px] h-[600px] flex flex-col rounded-2xl border shadow-xl">
-        {/* Header */}
-        <div className="flex items-center gap-3 border-b px-4 py-3">
-          <div className="size-8 rounded-full bg-accent" />
-          <div>
-            <p className="text-sm font-semibold">Acme Support</p>
-            <p className="text-xs text-muted">Typically replies in minutes</p>
-          </div>
-        </div>
-
-        {/* Messages + Composer */}
-        <ChatMessages messages={messages} />
+      <div className="flex h-screen flex-col">
+        <ChatMessages
+          messages={messages}
+          typingUsers={[]}
+        />
         <ChatComposer
           onSend={handleSend}
-          placeholder="Type a message..."
+          replyingTo={replyingTo}
+          onCancelReply={() => setReplyingTo(null)}
+          onFileUpload={(files) => {
+            console.log("Files dropped:", files)
+          }}
         />
       </div>
     </ChatProvider>
   )
 }`
+}
 
-const threadCode = `import { useState, useCallback } from "react"
-import { ChatProvider, ChatNestedThread } from "@/components/ui/chat"
-import type { ChatUser, ChatTheme, ThreadedMessage } from "@/components/ui/chat"
+function getSupportCode(theme: ChatTheme) {
+  return `"use client"
 
-const currentUser: ChatUser = { id: "user-1", name: "You" }
+import { useState, useCallback } from "react"
+import {
+  ChatProvider,
+  ChatMessages,
+  ChatComposer,
+} from "@/components/ui/chat"
+import type { ChatUser, ChatMessageData } from "@/components/ui/chat"
 
-export function ThreadView({ theme = "midnight" }: { theme?: ChatTheme }) {
-  const [messages, setMessages] = useState<ThreadedMessage[]>([
+const customer: ChatUser = { id: "customer-1", name: "Customer" }
+
+export default function SupportWidget() {
+  const [messages, setMessages] = useState<ChatMessageData[]>([
     {
-      id: "root-1",
-      senderId: "user-2",
-      senderName: "Alex Chen",
-      text: "Should we use JWTs or session tokens for the new auth system?",
-      timestamp: new Date(Date.now() - 3600000),
-      parentId: null,
-      depth: 0,
-      votes: 5,
-      children: [
-        {
-          id: "reply-1",
-          senderId: "user-3",
-          senderName: "Sara Kim",
-          text: "JWTs for API access, sessions for the web app.",
-          timestamp: new Date(Date.now() - 1800000),
-          parentId: "root-1",
-          depth: 1,
-          votes: 8,
-          children: [],
-        },
-      ],
+      id: "welcome",
+      senderId: "agent-1",
+      senderName: "Support Agent",
+      text: "Hi there! 👋 Welcome to Acme Support. How can I help you today?",
+      timestamp: new Date(Date.now() - 120000),
+      status: "read",
     },
   ])
+  const [rating, setRating] = useState(0)
 
-  const handleReply = useCallback((parentId: string, text: string) => {
-    // Add reply to thread...
-  }, [])
+  const handleSend = useCallback((text: string) => {
+    // Add customer message
+    const customerMsg: ChatMessageData = {
+      id: \`msg-\${Date.now()}\`,
+      senderId: customer.id,
+      senderName: customer.name,
+      text,
+      timestamp: new Date(),
+      status: "sent",
+    }
+    setMessages((prev) => [...prev, customerMsg])
 
-  const handleVote = useCallback((id: string, direction: "up" | "down") => {
-    // Update vote count...
+    // Simulate agent response after 1s
+    setTimeout(() => {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: \`agent-\${Date.now()}\`,
+          senderId: "agent-1",
+          senderName: "Support Agent",
+          text: "Thanks for reaching out! Let me look into that for you.",
+          timestamp: new Date(),
+          status: "read",
+        },
+      ])
+    }, 1000)
   }, [])
 
   return (
-    <ChatProvider currentUser={currentUser} theme={theme}>
-      <ChatNestedThread
-        messages={messages}
-        onReply={handleReply}
-        showVotes
-        onVote={handleVote}
-      />
+    <ChatProvider currentUser={customer} theme="${theme}">
+      <div className="w-[400px] h-[600px] flex flex-col rounded-2xl border shadow-xl overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center gap-3 border-b bg-[var(--chat-bg-header)] px-4 py-3">
+          <div className="relative">
+            <div className="size-9 rounded-full bg-[var(--chat-accent-soft)] flex items-center justify-center">
+              <span className="text-sm font-semibold text-[var(--chat-accent)]">A</span>
+            </div>
+            <div className="absolute bottom-0 right-0 size-2.5 rounded-full bg-green-500 border-2 border-white" />
+          </div>
+          <div>
+            <p className="text-[14px] font-semibold text-[var(--chat-text-primary)]">
+              Acme Support
+            </p>
+            <p className="text-[11px] text-[var(--chat-text-tertiary)]">
+              Typically replies in minutes
+            </p>
+          </div>
+        </div>
+
+        {/* Messages */}
+        <ChatMessages messages={messages} />
+
+        {/* Rating bar */}
+        <div className="flex items-center justify-center gap-1 border-t px-4 py-2">
+          <span className="text-[11px] text-[var(--chat-text-tertiary)] mr-2">
+            Rate this conversation:
+          </span>
+          {[1, 2, 3, 4, 5].map((n) => (
+            <button key={n} onClick={() => setRating(n)}>
+              <span style={{ color: n <= rating ? "#F59E0B" : "#D4D4D8" }}>★</span>
+            </button>
+          ))}
+        </div>
+
+        {/* Composer */}
+        <ChatComposer onSend={handleSend} placeholder="Type a message..." />
+      </div>
     </ChatProvider>
   )
 }`
+}
 
-const demoCodeMap = {
-  messaging: messagingCode,
-  support: supportCode,
-  thread: threadCode,
+function getThreadCode(theme: ChatTheme) {
+  return `"use client"
+
+import { useState, useCallback } from "react"
+import { ChatProvider, ChatNestedThread } from "@/components/ui/chat"
+import type { ChatUser, ThreadedMessage } from "@/components/ui/chat"
+
+const currentUser: ChatUser = { id: "user-1", name: "You" }
+
+const initialThreads: ThreadedMessage[] = [
+  {
+    id: "root-1",
+    senderId: "user-2",
+    senderName: "Alex Chen",
+    text: "Should we use JWTs or session tokens for the new auth system?",
+    timestamp: new Date(Date.now() - 3600000),
+    parentId: null,
+    depth: 0,
+    votes: 5,
+    children: [
+      {
+        id: "reply-1",
+        senderId: "user-3",
+        senderName: "Sara Kim",
+        text: "JWTs for API access, sessions for the web app. Best of both worlds.",
+        timestamp: new Date(Date.now() - 1800000),
+        parentId: "root-1",
+        depth: 1,
+        votes: 8,
+        children: [
+          {
+            id: "reply-2",
+            senderId: "user-1",
+            senderName: "You",
+            text: "Agreed. We can use short-lived JWTs with refresh token rotation.",
+            timestamp: new Date(Date.now() - 900000),
+            parentId: "reply-1",
+            depth: 2,
+            votes: 3,
+            children: [],
+          },
+        ],
+      },
+    ],
+  },
+]
+
+export default function ThreadView() {
+  const [messages, setMessages] = useState<ThreadedMessage[]>(initialThreads)
+
+  const handleReply = useCallback((parentId: string, text: string) => {
+    const newReply: ThreadedMessage = {
+      id: crypto.randomUUID(),
+      senderId: currentUser.id,
+      senderName: currentUser.name,
+      text,
+      timestamp: new Date(),
+      parentId,
+      depth: 0, // ChatNestedThread calculates depth automatically
+      votes: 0,
+      children: [],
+    }
+
+    function insertReply(msgs: ThreadedMessage[]): ThreadedMessage[] {
+      return msgs.map((msg) => {
+        if (msg.id === parentId) {
+          return { ...msg, children: [...msg.children, newReply] }
+        }
+        return { ...msg, children: insertReply(msg.children) }
+      })
+    }
+
+    setMessages((prev) => insertReply(prev))
+  }, [])
+
+  const handleVote = useCallback((id: string, direction: "up" | "down") => {
+    function updateVotes(msgs: ThreadedMessage[]): ThreadedMessage[] {
+      return msgs.map((msg) => {
+        if (msg.id === id) {
+          const delta = direction === "up" ? 1 : -1
+          return { ...msg, votes: (msg.votes ?? 0) + delta }
+        }
+        return { ...msg, children: updateVotes(msg.children) }
+      })
+    }
+    setMessages((prev) => updateVotes(prev))
+  }, [])
+
+  return (
+    <ChatProvider currentUser={currentUser} theme="${theme}">
+      <div className="h-screen overflow-y-auto">
+        <ChatNestedThread
+          messages={messages}
+          onReply={handleReply}
+          showVotes
+          onVote={handleVote}
+        />
+      </div>
+    </ChatProvider>
+  )
+}`
 }
 
 function DemoCodeBlock({ mode, theme }: { mode: "messaging" | "support" | "thread"; theme: ChatTheme }) {
   const [showCode, setShowCode] = useState(false)
   const [codeCopied, setCodeCopied] = useState(false)
 
-  const code = demoCodeMap[mode]
+  const code = mode === "messaging"
+    ? getMessagingCode(theme)
+    : mode === "support"
+    ? getSupportCode(theme)
+    : getThreadCode(theme)
+
+  const fileName = mode === "messaging"
+    ? "messaging-app.tsx"
+    : mode === "support"
+    ? "support-widget.tsx"
+    : "thread-view.tsx"
 
   return (
     <div className="mt-4">
@@ -1149,9 +1300,9 @@ function DemoCodeBlock({ mode, theme }: { mode: "messaging" | "support" | "threa
 
       {showCode && (
         <div className="relative mt-3 overflow-hidden rounded-xl border" style={{ borderColor: "#E4E4E7" }}>
-          <div className="flex items-center justify-between border-b px-4 py-2" style={{ borderColor: "#27272A", background: "#18181B" }}>
+          <div className="flex items-center justify-between border-b px-4 py-2" style={{ borderColor: "#1a1a1a", background: "#111111" }}>
             <span className="text-[12px] font-medium text-[#A1A1AA]">
-              {mode === "messaging" ? "messaging-app.tsx" : mode === "support" ? "support-widget.tsx" : "thread-view.tsx"}
+              {fileName}
             </span>
             <button
               onClick={() => {
@@ -1164,8 +1315,8 @@ function DemoCodeBlock({ mode, theme }: { mode: "messaging" | "support" | "threa
               {codeCopied ? "Copied!" : "Copy"}
             </button>
           </div>
-          <pre className="overflow-x-auto bg-[#18181B] p-4 text-[13px] leading-relaxed" style={{ maxHeight: 480 }}>
-            <code className="text-[#FAFAFA] font-mono">{code}</code>
+          <pre className="overflow-x-auto overflow-y-auto p-4 text-[13px] leading-relaxed" style={{ maxHeight: 520, background: "#0a0a0a" }}>
+            <code className="font-mono" style={{ color: "#ffffff" }}>{code}</code>
           </pre>
         </div>
       )}
