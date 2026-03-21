@@ -1317,37 +1317,65 @@ const currentUser: ChatUser = { id: "user-1", name: "You" }
 
 const initialThreads: ThreadedMessage[] = [
   {
-    id: "root-1",
-    senderId: "user-2",
-    senderName: "Alex Chen",
-    text: "Should we use JWTs or session tokens for the new auth system?",
-    timestamp: new Date(Date.now() - 3600000),
+    id: "t-1",
+    senderId: "user-4",
+    senderName: "Jordan Taylor",
+    text: "Should we switch from REST to tRPC for the new dashboard API? The type safety would be a huge win.",
+    timestamp: new Date(Date.now() - 7200000),
     parentId: null,
     depth: 0,
-    votes: 5,
+    votes: 12,
+    userVote: null,
     children: [
       {
-        id: "reply-1",
-        senderId: "user-3",
-        senderName: "Sara Kim",
-        text: "JWTs for API access, sessions for the web app. Best of both worlds.",
-        timestamp: new Date(Date.now() - 1800000),
-        parentId: "root-1",
+        id: "t-2",
+        senderId: "user-2",
+        senderName: "Alex Chen",
+        text: "Strongly agree. We spent two days last sprint debugging a type mismatch between the frontend and API. tRPC would have caught that at build time.",
+        timestamp: new Date(Date.now() - 6300000),
+        parentId: "t-1",
         depth: 1,
         votes: 8,
+        userVote: "up" as const,
         children: [
           {
-            id: "reply-2",
-            senderId: "user-1",
-            senderName: "You",
-            text: "Agreed. We can use short-lived JWTs with refresh token rotation.",
-            timestamp: new Date(Date.now() - 900000),
-            parentId: "reply-1",
+            id: "t-3",
+            senderId: "user-3",
+            senderName: "Sara Kim",
+            text: "The DX is great but what about the learning curve for the team? Not everyone is familiar with tRPC.",
+            timestamp: new Date(Date.now() - 5400000),
+            parentId: "t-2",
             depth: 2,
-            votes: 3,
-            children: [],
+            votes: 5,
+            userVote: null,
+            children: [
+              {
+                id: "t-4",
+                senderId: "user-2",
+                senderName: "Alex Chen",
+                text: "Fair point. We could start with one endpoint as a pilot and let people ramp up gradually.",
+                timestamp: new Date(Date.now() - 3600000),
+                parentId: "t-3",
+                depth: 3,
+                votes: 6,
+                userVote: null,
+                children: [],
+              },
+            ],
           },
         ],
+      },
+      {
+        id: "t-5",
+        senderId: "user-5",
+        senderName: "Morgan Rivera",
+        text: "I'd also consider the migration effort. We have 40+ REST endpoints. A gradual approach makes more sense than a full rewrite.",
+        timestamp: new Date(Date.now() - 4500000),
+        parentId: "t-1",
+        depth: 1,
+        votes: 10,
+        userVote: null,
+        children: [],
       },
     ],
   },
@@ -1356,6 +1384,7 @@ const initialThreads: ThreadedMessage[] = [
 export default function ThreadView() {
   const [messages, setMessages] = useState<ThreadedMessage[]>(initialThreads)
 
+  // Insert a reply into the nested tree
   const handleReply = useCallback((parentId: string, text: string) => {
     const newReply: ThreadedMessage = {
       id: crypto.randomUUID(),
@@ -1364,8 +1393,9 @@ export default function ThreadView() {
       text,
       timestamp: new Date(),
       parentId,
-      depth: 0, // ChatNestedThread calculates depth automatically
+      depth: 0,
       votes: 0,
+      userVote: null,
       children: [],
     }
 
@@ -1381,14 +1411,34 @@ export default function ThreadView() {
     setMessages((prev) => insertReply(prev))
   }, [])
 
-  const handleVote = useCallback((id: string, direction: "up" | "down") => {
+  // Toggle votes with proper up/down logic
+  const handleVote = useCallback((messageId: string, direction: "up" | "down") => {
     function updateVotes(msgs: ThreadedMessage[]): ThreadedMessage[] {
-      return msgs.map((msg) => {
-        if (msg.id === id) {
-          const delta = direction === "up" ? 1 : -1
-          return { ...msg, votes: (msg.votes ?? 0) + delta }
+      return msgs.map((m) => {
+        if (m.id === messageId) {
+          const currentVote = m.userVote
+          let newVote: "up" | "down" | null = direction
+          let delta = 0
+
+          if (currentVote === direction) {
+            // Undo vote
+            newVote = null
+            delta = direction === "up" ? -1 : 1
+          } else {
+            // Remove old vote, apply new
+            if (currentVote === "up") delta = -1
+            else if (currentVote === "down") delta = 1
+            delta += direction === "up" ? 1 : -1
+          }
+
+          return {
+            ...m,
+            userVote: newVote,
+            votes: (m.votes ?? 0) + delta,
+            children: updateVotes(m.children),
+          }
         }
-        return { ...msg, children: updateVotes(msg.children) }
+        return { ...m, children: updateVotes(m.children) }
       })
     }
     setMessages((prev) => updateVotes(prev))
@@ -1396,7 +1446,7 @@ export default function ThreadView() {
 
   return (
     <ChatProvider currentUser={currentUser} theme="${theme}">
-      <div className="h-screen overflow-y-auto">
+      <div className="h-screen overflow-y-auto p-4">
         <ChatNestedThread
           messages={messages}
           onReply={handleReply}
