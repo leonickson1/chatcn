@@ -10,7 +10,7 @@ Beautiful, ready-to-use chat UI components for React. Built on shadcn/ui. Styled
 
 <table>
   <tr>
-    <td><img src="screenshots/messagin_auora.png" alt="Aurora theme" width="400" /></td>
+    <td><img src="screenshots/messaging_auora.png" alt="Aurora theme" width="400" /></td>
     <td><img src="screenshots/support_ember.png" alt="Ember theme" width="400" /></td>
   </tr>
   <tr>
@@ -22,9 +22,11 @@ Beautiful, ready-to-use chat UI components for React. Built on shadcn/ui. Styled
 <table>
   <tr>
     <td><img src="screenshots/code_preview.png" alt="Code blocks and file attachments" width="400" /></td>
+    <td><img src="screenshots/thread_midnight.png" alt="Threads Midnight" width="400" /></td>
   </tr>
   <tr>
     <td align="center"><strong>Lunar</strong> — Code blocks, file attachments, link previews</td>
+    <td align="center"><strong>Midnight</strong> — Threads</td>
   </tr>
 </table>
 
