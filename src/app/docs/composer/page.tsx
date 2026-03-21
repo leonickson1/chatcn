@@ -150,6 +150,27 @@ function ReplyModeDemo() {
   )
 }
 
+function DragDropDemo() {
+  return (
+    <ChatProvider
+      currentUser={demoUser}
+      theme="lunar"
+      className="h-full flex flex-col"
+      style={{ height: "100%", display: "flex", flexDirection: "column" }}
+    >
+      <div className="h-full flex flex-col justify-end bg-[var(--chat-bg-main)]">
+        <ChatComposer
+          onSend={() => {}}
+          onFileUpload={(files) => {
+            console.log("Dropped files:", files)
+          }}
+          placeholder="Try dragging a file here..."
+        />
+      </div>
+    </ChatProvider>
+  )
+}
+
 function AutoResizeDemo() {
   return (
     <ChatProvider
@@ -294,6 +315,28 @@ export function ChatWithReplies() {
   )
 }`
 
+const dragDropCode = `// Drag-and-drop is built into ChatComposer.
+// When a user drags files over the composer, a drop overlay appears.
+// Dropped files show as previews with remove buttons before sending.
+//
+// Just provide an onFileUpload callback — no extra config needed.
+
+import { ChatProvider, ChatComposer } from "@/components/ui/chat"
+
+<ChatComposer
+  onSend={handleSend}
+  onFileUpload={(files: File[]) => {
+    // files is an array of File objects from the drop event
+    // Upload them to your server, or attach to the next message
+    files.forEach((file) => {
+      console.log(file.name, file.size, file.type)
+    })
+  }}
+/>
+
+// Also works with the + button menu (Photos, Files options)
+// and with paste from clipboard`
+
 const autoResizeCode = `// The composer textarea auto-resizes as you type.
 // It starts at 1 line and grows up to a maximum height.
 // This is built-in — no configuration needed.
@@ -353,6 +396,19 @@ export default function ComposerPage() {
           button that opens a popout menu for attachments. Click it in the demo above to see it in action.
         </p>
         <PreviewTabs preview={<AttachmentDemo />} code={attachmentCode} height={120} />
+      </div>
+
+      {/* Drag & Drop */}
+      <div className="mt-12">
+        <h2 className="text-[28px] font-bold text-[#18181B] mb-4">Drag & Drop</h2>
+        <p className="text-[15px] text-[#71717A] leading-relaxed mb-4">
+          The composer has built-in drag-and-drop support. Drag any file over the input area and a
+          drop overlay appears. Dropped files render as removable previews (with thumbnails for images)
+          before the message is sent. This works alongside the{" "}
+          <code className="bg-[#F4F4F5] px-1.5 py-0.5 rounded text-[13px] text-[#18181B]">+</code>{" "}
+          button menu and clipboard paste.
+        </p>
+        <PreviewTabs preview={<DragDropDemo />} code={dragDropCode} height={120} />
       </div>
 
       {/* Reply Mode */}
