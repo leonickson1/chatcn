@@ -1097,9 +1097,9 @@ function ChatFilePreview({
   const isImage = item.file.type.startsWith("image/")
 
   return (
-    <div className="relative shrink-0 overflow-hidden rounded-lg border border-[var(--chat-border-strong)] bg-[var(--chat-bg-sidebar)]">
+    <div className="relative shrink-0 rounded-lg border border-[var(--chat-border-strong)] bg-[var(--chat-bg-sidebar)]">
       {isImage && item.preview ? (
-        <div className="relative size-14">
+        <div className="relative size-14 overflow-hidden rounded-lg">
           <img src={item.preview} alt={item.file.name} className="size-full object-cover" />
         </div>
       ) : (
@@ -1122,10 +1122,10 @@ function ChatFilePreview({
       {/* Remove button */}
       <button
         onClick={onRemove}
-        className="absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full bg-[var(--chat-bg-sidebar)] text-[var(--chat-text-tertiary)] shadow-sm hover:text-[var(--chat-text-primary)]"
+        className="absolute -top-1.5 -right-1.5 flex size-5 items-center justify-center rounded-full border border-[var(--chat-border-strong)] bg-[var(--chat-bg-sidebar)] text-[var(--chat-text-secondary)] shadow-sm hover:bg-[var(--chat-bg-hover)] hover:text-[var(--chat-text-primary)]"
         aria-label="Remove file"
       >
-        <X className="size-2.5" />
+        <X className="size-3" />
       </button>
     </div>
   )
@@ -1280,7 +1280,7 @@ function ChatComposer({
 
       {/* File preview strip */}
       {files.length > 0 && (
-        <div className="flex gap-2 overflow-x-auto border-t border-[var(--chat-border)] bg-[var(--chat-bg-composer)] px-4 pt-2 pb-1 backdrop-blur-[20px]">
+        <div className="flex gap-3 overflow-x-auto border-t border-[var(--chat-border)] bg-[var(--chat-bg-composer)] px-4 pt-3 pb-2 backdrop-blur-[20px]">
           {files.map((f) => (
             <ChatFilePreview key={f.id} item={f} onRemove={() => removeFile(f.id)} />
           ))}
