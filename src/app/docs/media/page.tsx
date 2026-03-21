@@ -216,7 +216,9 @@ function LinkPreviewCardPreview() {
 /*  Code strings for the Code tab                                      */
 /* ------------------------------------------------------------------ */
 
-const imageMessageCode = `const message: ChatMessageData = {
+const imageMessageCode = `import type { ChatMessageData } from "@/components/ui/chat"
+
+const message: ChatMessageData = {
   id: "1",
   senderId: "user-2",
   senderName: "Alice",
@@ -232,7 +234,9 @@ const imageMessageCode = `const message: ChatMessageData = {
   ],
 }`
 
-const imageGalleryCode = `const message: ChatMessageData = {
+const imageGalleryCode = `import type { ChatMessageData } from "@/components/ui/chat"
+
+const message: ChatMessageData = {
   id: "2",
   senderId: "user-2",
   senderName: "Alice",
@@ -248,7 +252,9 @@ const imageGalleryCode = `const message: ChatMessageData = {
   ],
 }`
 
-const fileAttachmentCode = `const message: ChatMessageData = {
+const fileAttachmentCode = `import type { ChatMessageData } from "@/components/ui/chat"
+
+const message: ChatMessageData = {
   id: "3",
   senderId: "user-1",
   senderName: "You",
@@ -270,7 +276,9 @@ const fileAttachmentCode = `const message: ChatMessageData = {
   ],
 }`
 
-const voiceMessageCode = `const message: ChatMessageData = {
+const voiceMessageCode = `import type { ChatMessageData } from "@/components/ui/chat"
+
+const message: ChatMessageData = {
   id: "4",
   senderId: "user-2",
   senderName: "Alice",
@@ -286,7 +294,9 @@ const voiceMessageCode = `const message: ChatMessageData = {
   },
 }`
 
-const codeBlockCodeStr = `const message: ChatMessageData = {
+const codeBlockCodeStr = `import type { ChatMessageData } from "@/components/ui/chat"
+
+const message: ChatMessageData = {
   id: "5",
   senderId: "user-1",
   senderName: "You",
@@ -307,7 +317,9 @@ const codeBlockCodeStr = `const message: ChatMessageData = {
   },
 }`
 
-const linkPreviewCode = `const message: ChatMessageData = {
+const linkPreviewCode = `import type { ChatMessageData } from "@/components/ui/chat"
+
+const message: ChatMessageData = {
   id: "6",
   senderId: "user-2",
   senderName: "Alice",

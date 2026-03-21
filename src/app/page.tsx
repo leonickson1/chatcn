@@ -204,7 +204,7 @@ function createConvoMessages(now: number): Record<string, ChatMessageData[]> {
           url: "https://example.com/token-migration-patterns",
           title: "Token Migration Patterns for Zero-Downtime Auth",
           description: "A comprehensive guide to migrating authentication tokens in production without disrupting active user sessions.",
-          image: "https://placehold.co/800x400/1e293b/white?text=Token+Migration+Guide",
+          image: "",
         },
       },
       {

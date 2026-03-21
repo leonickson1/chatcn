@@ -167,7 +167,9 @@ const typingMany: TypingUser[] = [
 
 <ChatTypingIndicator users={typing} />`
 
-const readReceiptsCode = `const message: ChatMessageData = {
+const readReceiptsCode = `import type { ChatMessageData } from "@/components/ui/chat"
+
+const message: ChatMessageData = {
   id: "1",
   senderId: "user-1",
   senderName: "You",
