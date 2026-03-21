@@ -965,7 +965,7 @@ const features = [
 
 // ─── Install command ──────────────────────────────────────────────────────────
 
-const INSTALL_CMD = "npx shadcn@latest add https://chatcn-iota.vercel.app/r/chat.json"
+const INSTALL_CMD = "npx shadcn@latest add https://raw.githubusercontent.com/leonickson1/chatcn/main/public/r/chat.json"
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
