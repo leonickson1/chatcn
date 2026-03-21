@@ -983,34 +983,139 @@ const currentUser: ChatUser = {
 }
 
 const initialMessages: ChatMessageData[] = [
+  // System message
+  {
+    id: "sys-1",
+    senderId: "system",
+    senderName: "System",
+    timestamp: new Date(Date.now() - 600000),
+    isSystem: true,
+    text: "Alex Chen created this conversation",
+  },
+  // Basic text with reactions
   {
     id: "1",
     senderId: "user-2",
     senderName: "Alex Chen",
     text: "Hey! Have you had a chance to look at the new design system?",
-    timestamp: new Date(Date.now() - 300000),
+    timestamp: new Date(Date.now() - 500000),
     status: "read",
+    reactions: [
+      { emoji: "\\u{1F44D}", userIds: ["user-1"], count: 1 },
+    ],
   },
+  // Reply-to quote
   {
     id: "2",
-    senderId: "user-2",
-    senderName: "Alex Chen",
-    text: "I pushed the updated Figma link to the channel",
-    timestamp: new Date(Date.now() - 240000),
-    status: "read",
-  },
-  {
-    id: "3",
     senderId: "user-1",
     senderName: "You",
-    text: "Yeah, just opened it. The component library looks incredible",
-    timestamp: new Date(Date.now() - 180000),
+    text: "Yeah! The component library looks incredible",
+    timestamp: new Date(Date.now() - 400000),
     status: "delivered",
     replyTo: {
       id: "1",
       senderName: "Alex Chen",
       text: "Hey! Have you had a chance to look at the new design system?",
     },
+    readBy: [
+      { userId: "user-2", name: "Alex Chen" },
+    ],
+  },
+  // Code block
+  {
+    id: "3",
+    senderId: "user-2",
+    senderName: "Alex Chen",
+    text: "Here's the updated token validation:",
+    timestamp: new Date(Date.now() - 300000),
+    status: "read",
+    code: {
+      language: "typescript",
+      code: \`async function validateToken(token: string) {
+  const decoded = jwt.verify(token, SECRET)
+  if (decoded.version === 2) {
+    return validateV2(decoded)
+  }
+  return validateV1(decoded) // legacy
+}\`,
+    },
+  },
+  // File attachment
+  {
+    id: "4",
+    senderId: "user-2",
+    senderName: "Alex Chen",
+    text: "And the migration plan doc",
+    timestamp: new Date(Date.now() - 250000),
+    status: "read",
+    files: [
+      {
+        name: "token-migration-plan.pdf",
+        size: 245000,
+        type: "application/pdf",
+        url: "/uploads/token-migration-plan.pdf",
+      },
+    ],
+  },
+  // Image
+  {
+    id: "5",
+    senderId: "user-3",
+    senderName: "Sara Kim",
+    text: "Here's the updated component preview:",
+    timestamp: new Date(Date.now() - 200000),
+    status: "read",
+    images: [
+      {
+        url: "/uploads/design-preview.png",
+        width: 600,
+        height: 400,
+        alt: "Design System v2 preview",
+      },
+    ],
+  },
+  // Link preview
+  {
+    id: "6",
+    senderId: "user-2",
+    senderName: "Alex Chen",
+    text: "Found this article on token migration — really useful:",
+    timestamp: new Date(Date.now() - 150000),
+    status: "read",
+    linkPreview: {
+      url: "https://example.com/token-migration-patterns",
+      title: "Token Migration Patterns for Zero-Downtime Auth",
+      description: "A comprehensive guide to migrating authentication tokens in production.",
+      image: "https://example.com/og-image.png",
+    },
+  },
+  // Voice message
+  {
+    id: "7",
+    senderId: "user-3",
+    senderName: "Sara Kim",
+    text: "Left a voice note about the rollout timeline:",
+    timestamp: new Date(Date.now() - 100000),
+    status: "read",
+    voice: {
+      url: "/uploads/voice-note.webm",
+      duration: 14,
+      waveform: [0.2, 0.4, 0.7, 1.0, 0.8, 0.5, 0.9, 0.6, 0.3, 0.7,
+                 0.5, 0.8, 0.4, 0.6, 0.9, 0.3, 0.5, 0.7, 0.4, 0.2],
+    },
+  },
+  // Pinned message
+  {
+    id: "8",
+    senderId: "user-1",
+    senderName: "You",
+    text: "Let's ship the new token format behind a feature flag first",
+    timestamp: new Date(Date.now() - 50000),
+    status: "delivered",
+    isPinned: true,
+    reactions: [
+      { emoji: "\\u{1F680}", userIds: ["user-2", "user-3"], count: 2 },
+    ],
   },
 ]
 
@@ -1087,8 +1192,43 @@ export default function SupportWidget() {
       id: "welcome",
       senderId: "agent-1",
       senderName: "Support Agent",
-      text: "Hi there! 👋 Welcome to Acme Support. How can I help you today?",
+      text: "Hi there! \\u{1F44B} Welcome to Acme Support. How can I help you today?",
+      timestamp: new Date(Date.now() - 300000),
+      status: "read",
+    },
+    {
+      id: "customer-1",
+      senderId: "customer-1",
+      senderName: "Customer",
+      text: "I'm having trouble with my subscription renewal. It says payment failed but my card is fine.",
+      timestamp: new Date(Date.now() - 240000),
+      status: "read",
+    },
+    {
+      id: "agent-2",
+      senderId: "agent-1",
+      senderName: "Support Agent",
+      text: "I can see the issue — your card's expiration date was updated by your bank but our system still has the old one. Let me fix that for you.",
+      timestamp: new Date(Date.now() - 180000),
+      status: "read",
+    },
+    {
+      id: "agent-3",
+      senderId: "agent-1",
+      senderName: "Support Agent",
+      text: "Done! I've refreshed your payment method. The renewal should go through within the next few minutes. You'll get a confirmation email.",
       timestamp: new Date(Date.now() - 120000),
+      status: "read",
+      reactions: [
+        { emoji: "\\u{1F44D}", userIds: ["customer-1"], count: 1 },
+      ],
+    },
+    {
+      id: "customer-2",
+      senderId: "customer-1",
+      senderName: "Customer",
+      text: "That was fast, thank you so much!",
+      timestamp: new Date(Date.now() - 60000),
       status: "read",
     },
   ])
