@@ -58,6 +58,10 @@ export {
   InlineChat,
   ChatBoard,
   LiveChat,
+  SupportTickets,
+  TicketStatusBadge,
+  TicketPriorityBadge,
+  TicketFilterTabs,
 } from "./layouts"
 export type {
   ChatHeaderProps,
@@ -68,6 +72,10 @@ export type {
   Topic,
   ChatBoardProps,
   LiveChatProps,
+  TicketStatus,
+  TicketPriority,
+  SupportTicket,
+  SupportTicketsProps,
 } from "./layouts"
 
 // Security utilities

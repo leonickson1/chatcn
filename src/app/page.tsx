@@ -7,8 +7,9 @@ import {
   ChatMessages,
   ChatComposer,
   ChatNestedThread,
+  SupportTickets,
 } from "@/components/ui/chat"
-import type { ChatMessageData, ChatUser, TypingUser, ChatTheme, ThreadedMessage } from "@/components/ui/chat"
+import type { ChatMessageData, ChatUser, TypingUser, ChatTheme, ThreadedMessage, SupportTicket } from "@/components/ui/chat"
 import { Navbar } from "@/components/docs/navbar"
 import {
   Check,
@@ -20,13 +21,6 @@ import {
   Headphones,
   MessageSquare,
   Star,
-  Ticket,
-  Clock,
-  AlertCircle,
-  CheckCircle2,
-  Circle,
-  Tag,
-  User,
 } from "lucide-react"
 
 // ─── Sample data ──────────────────────────────────────────────────────────────
@@ -883,23 +877,13 @@ function ThreadDemo({ theme }: { theme: ChatTheme }) {
 
 // ─── TicketsDemo component ──────────────────────────────────────────────────
 
-interface SupportTicket {
-  id: string
-  subject: string
-  customer: string
-  status: "open" | "in-progress" | "resolved"
-  priority: "low" | "medium" | "high" | "urgent"
-  category: string
-  created: string
-}
-
 const ticketsList: SupportTicket[] = [
-  { id: "TK-1042", subject: "Cannot export data to CSV", customer: "Emma Wilson", status: "open", priority: "high", category: "Bug", created: "10m ago" },
-  { id: "TK-1041", subject: "Billing shows wrong amount", customer: "James Park", status: "in-progress", priority: "urgent", category: "Billing", created: "25m ago" },
-  { id: "TK-1040", subject: "How to set up SSO?", customer: "Priya Sharma", status: "open", priority: "medium", category: "Question", created: "1h ago" },
-  { id: "TK-1039", subject: "API rate limit too low", customer: "Carlos Ruiz", status: "in-progress", priority: "medium", category: "Feature", created: "2h ago" },
-  { id: "TK-1038", subject: "Dashboard loads slowly", customer: "Aisha Johnson", status: "resolved", priority: "low", category: "Bug", created: "3h ago" },
-  { id: "TK-1037", subject: "Need to add team members", customer: "Liam O'Brien", status: "resolved", priority: "low", category: "Question", created: "5h ago" },
+  { id: "TK-1042", subject: "Cannot export data to CSV", customerName: "Emma Wilson", status: "open", priority: "high", category: "Bug", createdAt: "10m ago" },
+  { id: "TK-1041", subject: "Billing shows wrong amount", customerName: "James Park", status: "in-progress", priority: "urgent", category: "Billing", createdAt: "25m ago" },
+  { id: "TK-1040", subject: "How to set up SSO?", customerName: "Priya Sharma", status: "open", priority: "medium", category: "Question", createdAt: "1h ago" },
+  { id: "TK-1039", subject: "API rate limit too low", customerName: "Carlos Ruiz", status: "in-progress", priority: "medium", category: "Feature", createdAt: "2h ago" },
+  { id: "TK-1038", subject: "Dashboard loads slowly", customerName: "Aisha Johnson", status: "resolved", priority: "low", category: "Bug", createdAt: "3h ago" },
+  { id: "TK-1037", subject: "Need to add team members", customerName: "Liam O'Brien", status: "resolved", priority: "low", category: "Question", createdAt: "5h ago" },
 ]
 
 function createTicketMessages(now: number): Record<string, ChatMessageData[]> {
@@ -1135,31 +1119,11 @@ function createTicketMessages(now: number): Record<string, ChatMessageData[]> {
   }
 }
 
-const priorityColors: Record<string, string> = {
-  urgent: "var(--chat-red)",
-  high: "var(--chat-orange)",
-  medium: "var(--chat-accent)",
-  low: "var(--chat-text-tertiary)",
-}
-
-const statusConfig: Record<string, { icon: typeof Circle; label: string; color: string }> = {
-  open: { icon: Circle, label: "Open", color: "var(--chat-orange)" },
-  "in-progress": { icon: Clock, label: "In Progress", color: "var(--chat-accent)" },
-  resolved: { icon: CheckCircle2, label: "Resolved", color: "var(--chat-green)" },
-}
-
 function TicketsDemo({ theme }: { theme: ChatTheme }) {
   const [activeTicketId, setActiveTicketId] = useState("TK-1042")
   const [messages, setMessages] = useState<Record<string, ChatMessageData[]>>(() => createTicketMessages(Date.now()))
-  const [filterStatus, setFilterStatus] = useState<"all" | "open" | "in-progress" | "resolved">("all")
 
-  const activeTicket = ticketsList.find((t) => t.id === activeTicketId) || ticketsList[0]
   const activeMessages = useMemo(() => messages[activeTicketId] || [], [messages, activeTicketId])
-
-  const filteredTickets = useMemo(() => {
-    if (filterStatus === "all") return ticketsList
-    return ticketsList.filter((t) => t.status === filterStatus)
-  }, [filterStatus])
 
   const handleSend = useCallback(
     (text: string) => {
@@ -1187,154 +1151,16 @@ function TicketsDemo({ theme }: { theme: ChatTheme }) {
     [activeTicketId]
   )
 
-  const openCount = ticketsList.filter((t) => t.status === "open").length
-  const inProgressCount = ticketsList.filter((t) => t.status === "in-progress").length
-
   return (
-    <ChatProvider
+    <SupportTickets
       currentUser={currentUser}
       theme={theme}
-      className="h-full flex flex-col"
-      style={{ height: "100%", display: "flex", flexDirection: "column" }}
-    >
-      <div className="flex h-full">
-        {/* Ticket sidebar */}
-        <div className="hidden md:flex w-[280px] shrink-0 border-r border-[var(--chat-border-strong)] bg-[var(--chat-bg-sidebar)] flex-col">
-          {/* Sidebar header */}
-          <div className="px-3 py-2.5 border-b border-[var(--chat-border)]">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <Ticket className="size-4 text-[var(--chat-accent)]" />
-                <span className="text-[14px] font-semibold text-[var(--chat-text-primary)]">Tickets</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="flex items-center gap-1 rounded-full bg-[var(--chat-accent-soft)] px-2 py-0.5 text-[10px] font-medium text-[var(--chat-accent)]">
-                  {openCount} open
-                </span>
-                <span className="flex items-center gap-1 rounded-full bg-[var(--chat-accent-soft)] px-2 py-0.5 text-[10px] font-medium text-[var(--chat-text-secondary)]">
-                  {inProgressCount} active
-                </span>
-              </div>
-            </div>
-            {/* Status filter */}
-            <div className="flex gap-1">
-              {(["all", "open", "in-progress", "resolved"] as const).map((s) => (
-                <button
-                  key={s}
-                  onClick={() => setFilterStatus(s)}
-                  className="rounded-md px-2 py-1 text-[10px] font-medium transition-colors capitalize"
-                  style={{
-                    background: filterStatus === s ? "var(--chat-accent-soft)" : "transparent",
-                    color: filterStatus === s ? "var(--chat-accent)" : "var(--chat-text-tertiary)",
-                  }}
-                >
-                  {s === "in-progress" ? "Active" : s}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Ticket list */}
-          <div className="flex-1 overflow-y-auto py-1">
-            {filteredTickets.map((ticket) => {
-              const StatusIcon = statusConfig[ticket.status].icon
-              return (
-                <button
-                  key={ticket.id}
-                  onClick={() => setActiveTicketId(ticket.id)}
-                  className="flex w-full items-start gap-2.5 px-3 py-2.5 text-left transition-colors border-b border-[var(--chat-border)]"
-                  style={{
-                    background: activeTicketId === ticket.id ? "var(--chat-accent-soft)" : "transparent",
-                  }}
-                >
-                  <StatusIcon
-                    className="size-3.5 mt-0.5 shrink-0"
-                    style={{ color: statusConfig[ticket.status].color }}
-                  />
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center justify-between gap-1">
-                      <span className="text-[10px] font-mono text-[var(--chat-text-tertiary)]">{ticket.id}</span>
-                      <span className="text-[9px] text-[var(--chat-text-tertiary)] shrink-0">{ticket.created}</span>
-                    </div>
-                    <p className="text-[12px] font-medium text-[var(--chat-text-primary)] truncate leading-snug mt-0.5">
-                      {ticket.subject}
-                    </p>
-                    <div className="flex items-center gap-1.5 mt-1">
-                      <span className="text-[10px] text-[var(--chat-text-secondary)]">{ticket.customer}</span>
-                      <span
-                        className="rounded-full px-1.5 py-0 text-[9px] font-medium"
-                        style={{
-                          background: `color-mix(in srgb, ${priorityColors[ticket.priority]} 15%, transparent)`,
-                          color: priorityColors[ticket.priority],
-                        }}
-                      >
-                        {ticket.priority}
-                      </span>
-                      <span className="rounded-full bg-[var(--chat-accent-soft)] px-1.5 py-0 text-[9px] font-medium text-[var(--chat-text-secondary)]">
-                        {ticket.category}
-                      </span>
-                    </div>
-                  </div>
-                </button>
-              )
-            })}
-            {filteredTickets.length === 0 && (
-              <div className="px-4 py-6 text-center text-[12px] text-[var(--chat-text-tertiary)]">
-                No tickets found
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Main ticket area */}
-        <div className="flex-1 flex flex-col bg-[var(--chat-bg-main)] min-w-0">
-          {/* Ticket header */}
-          <div className="flex items-center gap-3 border-b border-[var(--chat-border)] bg-[var(--chat-bg-header)] px-4 py-2.5 backdrop-blur-[20px]">
-            <div className="flex size-9 items-center justify-center rounded-full bg-[var(--chat-accent-soft)]">
-              <User className="size-4 text-[var(--chat-accent)]" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="text-[14px] font-semibold text-[var(--chat-text-primary)] truncate">{activeTicket.subject}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-mono text-[var(--chat-text-tertiary)]">{activeTicket.id}</span>
-                <span className="text-[10px] text-[var(--chat-text-tertiary)]">\u00B7</span>
-                <span className="text-[11px] text-[var(--chat-text-secondary)]">{activeTicket.customer}</span>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              {/* Status badge */}
-              <span
-                className="flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-medium"
-                style={{
-                  background: `color-mix(in srgb, ${statusConfig[activeTicket.status].color} 15%, transparent)`,
-                  color: statusConfig[activeTicket.status].color,
-                }}
-              >
-                {(() => { const I = statusConfig[activeTicket.status].icon; return <I className="size-3" /> })()}
-                {statusConfig[activeTicket.status].label}
-              </span>
-              {/* Priority badge */}
-              <span
-                className="flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-medium"
-                style={{
-                  background: `color-mix(in srgb, ${priorityColors[activeTicket.priority]} 15%, transparent)`,
-                  color: priorityColors[activeTicket.priority],
-                }}
-              >
-                <AlertCircle className="size-3" />
-                {activeTicket.priority}
-              </span>
-            </div>
-          </div>
-
-          {/* Messages + Composer */}
-          <ChatMessages messages={activeMessages} />
-          <ChatComposer onSend={handleSend} placeholder="Reply to ticket..." />
-        </div>
-      </div>
-    </ChatProvider>
+      tickets={ticketsList}
+      activeTicketId={activeTicketId}
+      onSelectTicket={setActiveTicketId}
+      messages={activeMessages}
+      onSend={handleSend}
+    />
   )
 }
 
@@ -1927,60 +1753,38 @@ function getTicketsCode(theme: ChatTheme) {
   return `"use client"
 
 import { useState, useCallback, useMemo } from "react"
-import {
-  ChatProvider,
-  ChatMessages,
-  ChatComposer,
-} from "@/components/ui/chat"
-import type { ChatUser, ChatMessageData } from "@/components/ui/chat"
-import {
-  Ticket,
-  Clock,
-  AlertCircle,
-  CheckCircle2,
-  Circle,
-  User,
-} from "lucide-react"
+import { SupportTickets } from "@/components/ui/chat"
+import type { ChatUser, ChatMessageData, SupportTicket } from "@/components/ui/chat"
 
 const agent: ChatUser = { id: "agent-1", name: "Support Agent", status: "online" }
-
-interface SupportTicket {
-  id: string
-  subject: string
-  customer: string
-  status: "open" | "in-progress" | "resolved"
-  priority: "low" | "medium" | "high" | "urgent"
-  category: string
-  created: string
-}
 
 const tickets: SupportTicket[] = [
   {
     id: "TK-1042",
     subject: "Cannot export data to CSV",
-    customer: "Emma Wilson",
+    customerName: "Emma Wilson",
     status: "open",
     priority: "high",
     category: "Bug",
-    created: "10m ago",
+    createdAt: "10m ago",
   },
   {
     id: "TK-1041",
     subject: "Billing shows wrong amount",
-    customer: "James Park",
+    customerName: "James Park",
     status: "in-progress",
     priority: "urgent",
     category: "Billing",
-    created: "25m ago",
+    createdAt: "25m ago",
   },
   {
     id: "TK-1040",
     subject: "How to set up SSO?",
-    customer: "Priya Sharma",
+    customerName: "Priya Sharma",
     status: "open",
     priority: "medium",
     category: "Question",
-    created: "1h ago",
+    createdAt: "1h ago",
   },
 ]
 
@@ -1998,16 +1802,8 @@ const ticketMessages: Record<string, ChatMessageData[]> = {
       id: "tk1042-2",
       senderId: "agent-1",
       senderName: "Support Agent",
-      text: "How many rows of data are you exporting? Exports over 10k rows time out in the browser.",
+      text: "How many rows are you exporting? Exports over 10k rows time out in the browser.",
       timestamp: new Date(Date.now() - 480000),
-      status: "read",
-    },
-    {
-      id: "tk1042-3",
-      senderId: "customer-emma",
-      senderName: "Emma Wilson",
-      text: "About 50,000 rows — the last 6 months.",
-      timestamp: new Date(Date.now() - 420000),
       status: "read",
     },
     {
@@ -2028,12 +1824,7 @@ const ticketMessages: Record<string, ChatMessageData[]> = {
       timestamp: new Date(Date.now() - 1500000),
       status: "read",
       files: [
-        {
-          name: "invoice-march-2026.pdf",
-          size: 142000,
-          type: "application/pdf",
-          url: "/uploads/invoice.pdf",
-        },
+        { name: "invoice-march-2026.pdf", size: 142000, type: "application/pdf", url: "#" },
       ],
     },
     {
@@ -2045,36 +1836,12 @@ const ticketMessages: Record<string, ChatMessageData[]> = {
       text: "Ticket assigned to Sarah from Billing Team",
     },
   ],
-  "TK-1040": [
-    {
-      id: "tk1040-1",
-      senderId: "customer-priya",
-      senderName: "Priya Sharma",
-      text: "We'd like to set up SSO with Okta for our team of 50.",
-      timestamp: new Date(Date.now() - 3600000),
-      status: "read",
-    },
-  ],
 }
 
-const priorityColors: Record<string, string> = {
-  urgent: "var(--chat-red)",
-  high: "var(--chat-orange)",
-  medium: "var(--chat-accent)",
-  low: "var(--chat-text-tertiary)",
-}
-
-const statusConfig = {
-  open: { icon: Circle, label: "Open", color: "var(--chat-orange)" },
-  "in-progress": { icon: Clock, label: "In Progress", color: "var(--chat-accent)" },
-  resolved: { icon: CheckCircle2, label: "Resolved", color: "var(--chat-green)" },
-}
-
-export default function SupportTickets() {
+export default function TicketsDemoPage() {
   const [activeTicketId, setActiveTicketId] = useState("TK-1042")
   const [messages, setMessages] = useState(ticketMessages)
 
-  const activeTicket = tickets.find((t) => t.id === activeTicketId) || tickets[0]
   const activeMessages = useMemo(
     () => messages[activeTicketId] || [],
     [messages, activeTicketId]
@@ -2100,105 +1867,18 @@ export default function SupportTickets() {
     [activeTicketId]
   )
 
+  // SupportTickets handles the entire layout:
+  // ticket sidebar, filter tabs, status/priority badges, and chat area.
   return (
-    <ChatProvider currentUser={agent} theme="${theme}">
-      <div className="flex h-screen">
-        {/* Ticket sidebar */}
-        <aside className="w-72 shrink-0 border-r border-[var(--chat-border-strong)]
-                          bg-[var(--chat-bg-sidebar)] flex flex-col">
-          <div className="px-3 py-2.5 border-b border-[var(--chat-border)]">
-            <div className="flex items-center gap-2">
-              <Ticket className="size-4 text-[var(--chat-accent)]" />
-              <span className="text-sm font-semibold text-[var(--chat-text-primary)]">
-                Tickets
-              </span>
-            </div>
-          </div>
-          <div className="flex-1 overflow-y-auto">
-            {tickets.map((ticket) => {
-              const StatusIcon = statusConfig[ticket.status].icon
-              return (
-                <button
-                  key={ticket.id}
-                  onClick={() => setActiveTicketId(ticket.id)}
-                  className="w-full text-left px-3 py-2.5 border-b
-                             border-[var(--chat-border)] transition-colors"
-                  style={{
-                    background:
-                      activeTicketId === ticket.id
-                        ? "var(--chat-accent-soft)"
-                        : "transparent",
-                  }}
-                >
-                  <div className="flex items-center gap-1.5">
-                    <StatusIcon
-                      className="size-3"
-                      style={{ color: statusConfig[ticket.status].color }}
-                    />
-                    <span className="text-[10px] font-mono
-                                     text-[var(--chat-text-tertiary)]">
-                      {ticket.id}
-                    </span>
-                    <span className="ml-auto text-[9px]
-                                     text-[var(--chat-text-tertiary)]">
-                      {ticket.created}
-                    </span>
-                  </div>
-                  <p className="text-xs font-medium truncate mt-0.5
-                                text-[var(--chat-text-primary)]">
-                    {ticket.subject}
-                  </p>
-                  <span className="text-[10px] text-[var(--chat-text-secondary)]">
-                    {ticket.customer}
-                  </span>
-                </button>
-              )
-            })}
-          </div>
-        </aside>
-
-        {/* Ticket detail + chat */}
-        <main className="flex-1 flex flex-col bg-[var(--chat-bg-main)]">
-          {/* Header */}
-          <div className="flex items-center gap-3 border-b
-                          border-[var(--chat-border)] px-4 py-2.5
-                          bg-[var(--chat-bg-header)]">
-            <User className="size-5 text-[var(--chat-accent)]" />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold truncate
-                            text-[var(--chat-text-primary)]">
-                {activeTicket.subject}
-              </p>
-              <p className="text-[11px] text-[var(--chat-text-secondary)]">
-                {activeTicket.id} · {activeTicket.customer}
-              </p>
-            </div>
-            {/* Status + priority badges */}
-            <span
-              className="rounded-full px-2 py-0.5 text-[10px] font-medium"
-              style={{
-                background: \\\`color-mix(in srgb, \\\${statusConfig[activeTicket.status].color} 15%, transparent)\\\`,
-                color: statusConfig[activeTicket.status].color,
-              }}
-            >
-              {statusConfig[activeTicket.status].label}
-            </span>
-            <span
-              className="rounded-full px-2 py-0.5 text-[10px] font-medium capitalize"
-              style={{
-                background: \\\`color-mix(in srgb, \\\${priorityColors[activeTicket.priority]} 15%, transparent)\\\`,
-                color: priorityColors[activeTicket.priority],
-              }}
-            >
-              {activeTicket.priority}
-            </span>
-          </div>
-
-          <ChatMessages messages={activeMessages} />
-          <ChatComposer onSend={handleSend} placeholder="Reply to ticket..." />
-        </main>
-      </div>
-    </ChatProvider>
+    <SupportTickets
+      currentUser={agent}
+      theme="${theme}"
+      tickets={tickets}
+      activeTicketId={activeTicketId}
+      onSelectTicket={setActiveTicketId}
+      messages={activeMessages}
+      onSend={handleSend}
+    />
   )
 }`
 }
@@ -2457,13 +2137,13 @@ export default function HomePage() {
             Install the chat component into your project via the shadcn CLI.
           </p>
 
-          <div className="mt-8 flex justify-center">
+          <div className="mt-8 flex justify-center px-4">
             <div
-              className="group relative flex items-center gap-3 rounded-xl border px-5 py-3.5"
+              className="group relative flex max-w-full items-center gap-3 overflow-x-auto rounded-xl border px-5 py-3.5"
               style={{ borderColor: "#E4E4E7", background: "#FAFAFA" }}
             >
               <code
-                className="text-[13px] font-mono"
+                className="shrink-0 text-[13px] font-mono whitespace-nowrap"
                 style={{ color: "#18181B" }}
               >
                 {INSTALL_CMD}

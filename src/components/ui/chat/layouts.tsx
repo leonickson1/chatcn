@@ -11,6 +11,13 @@ import {
   Plus,
   Minimize2,
   Pin,
+  Ticket,
+  Clock,
+  AlertCircle,
+  CheckCircle2,
+  Circle,
+  User,
+  Tag,
 } from "lucide-react"
 import type { ChatMessageData, ChatUser, ChatTheme, TypingUser } from "./types"
 import { ChatProvider } from "./chat"
@@ -135,12 +142,26 @@ function FullMessenger({
   className,
 }: FullMessengerProps) {
   const activeConvo = conversations.find((c) => c.id === activeConversationId)
+  const showingConvo = !!activeConvo
 
   return (
-    <ChatProvider currentUser={currentUser} theme={theme}>
-      <div className={cn("flex h-full bg-[var(--chat-bg-app)]", className)}>
-        {/* Sidebar — 320px */}
-        <aside className="flex w-80 shrink-0 flex-col border-r border-[var(--chat-border-strong)] bg-[var(--chat-bg-sidebar)]">
+    <ChatProvider
+      currentUser={currentUser}
+      theme={theme}
+      className="h-full flex flex-col"
+      style={{ height: "100%", display: "flex", flexDirection: "column" }}
+    >
+      <div
+        className={cn("flex flex-1 min-h-0 bg-[var(--chat-bg-app)]", className)}
+        style={{ height: "100%" }}
+      >
+        {/* Sidebar — hidden on mobile when viewing a conversation */}
+        <aside
+          className={cn(
+            "flex flex-col border-r border-[var(--chat-border-strong)] bg-[var(--chat-bg-sidebar)] min-h-0",
+            showingConvo ? "hidden md:flex md:w-80 md:shrink-0" : "flex w-full md:w-80 md:shrink-0"
+          )}
+        >
           <div className="flex items-center justify-between px-4 py-3">
             <span className="text-[15px] font-semibold text-[var(--chat-text-primary)]">{title}</span>
             <button className="text-[var(--chat-text-secondary)] hover:text-[var(--chat-text-primary)]">
@@ -167,22 +188,36 @@ function FullMessenger({
           </div>
         </aside>
 
-        {/* Main panel */}
-        <main className="flex flex-1 flex-col bg-[var(--chat-bg-main)]">
+        {/* Main panel — hidden on mobile when no conversation selected */}
+        <main
+          className={cn(
+            "flex min-h-0 flex-1 flex-col bg-[var(--chat-bg-main)]",
+            !showingConvo && "hidden md:flex"
+          )}
+        >
           {activeConvo ? (
             <>
               <ChatHeader
                 title={activeConvo.title}
                 subtitle={subtitle || (activeConvo.isGroup ? "Group" : undefined)}
                 avatar={
-                  <div className="relative">
-                    <div className="flex size-10 items-center justify-center rounded-full bg-[var(--chat-bubble-incoming)] text-sm font-semibold text-[var(--chat-text-primary)]">
-                      {activeConvo.title.charAt(0).toUpperCase()}
+                  <>
+                    {/* Mobile-only back button */}
+                    <button
+                      onClick={() => onSelectConversation("")}
+                      className="mr-1 text-[var(--chat-text-secondary)] hover:text-[var(--chat-text-primary)] md:hidden"
+                    >
+                      <ChevronLeft className="size-5" />
+                    </button>
+                    <div className="relative">
+                      <div className="flex size-10 items-center justify-center rounded-full bg-[var(--chat-bubble-incoming)] text-sm font-semibold text-[var(--chat-text-primary)]">
+                        {activeConvo.title.charAt(0).toUpperCase()}
+                      </div>
+                      {activeConvo.presence === "online" && (
+                        <div className="absolute -bottom-0.5 -right-0.5 size-[10px] rounded-full border-2 border-[var(--chat-bg-main)] bg-[var(--chat-green)]" />
+                      )}
                     </div>
-                    {activeConvo.presence === "online" && (
-                      <div className="absolute -bottom-0.5 -right-0.5 size-[10px] rounded-full border-2 border-[var(--chat-bg-main)] bg-[var(--chat-green)]" />
-                    )}
-                  </div>
+                  </>
                 }
                 actions={
                   <div className="flex items-center gap-1">
@@ -435,6 +470,325 @@ function LiveChat({
   )
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// LAYOUT 7: SupportTickets (Help desk / ticket queue)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+type TicketStatus = "open" | "in-progress" | "resolved"
+type TicketPriority = "low" | "medium" | "high" | "urgent"
+
+interface SupportTicket {
+  id: string
+  subject: string
+  customerName: string
+  customerAvatar?: string
+  status: TicketStatus
+  priority: TicketPriority
+  category?: string
+  tags?: string[]
+  createdAt: string
+  updatedAt?: string
+  lastMessage?: string
+  unreadCount?: number
+  assignee?: string
+}
+
+interface SupportTicketsProps {
+  currentUser: ChatUser
+  theme?: ChatTheme
+  tickets: SupportTicket[]
+  activeTicketId?: string
+  onSelectTicket: (id: string) => void
+  messages: ChatMessageData[]
+  typingUsers?: TypingUser[]
+  onSend: (text: string) => void
+  statusFilter?: TicketStatus | "all"
+  onStatusFilterChange?: (status: TicketStatus | "all") => void
+  title?: string
+  className?: string
+}
+
+// ─── Internal helpers ────────────────────────────────────────────────────────
+
+const ticketStatusConfig: Record<TicketStatus, { icon: typeof Circle; label: string; color: string }> = {
+  open: { icon: Circle, label: "Open", color: "var(--chat-orange)" },
+  "in-progress": { icon: Clock, label: "In Progress", color: "var(--chat-accent)" },
+  resolved: { icon: CheckCircle2, label: "Resolved", color: "var(--chat-green)" },
+}
+
+const ticketPriorityColors: Record<TicketPriority, string> = {
+  urgent: "var(--chat-red)",
+  high: "var(--chat-orange)",
+  medium: "var(--chat-accent)",
+  low: "var(--chat-text-tertiary)",
+}
+
+function TicketStatusBadge({ status }: { status: TicketStatus }) {
+  const cfg = ticketStatusConfig[status]
+  const Icon = cfg.icon
+  return (
+    <span
+      className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium"
+      style={{
+        background: `color-mix(in srgb, ${cfg.color} 15%, transparent)`,
+        color: cfg.color,
+      }}
+    >
+      <Icon className="size-3" />
+      {cfg.label}
+    </span>
+  )
+}
+
+function TicketPriorityBadge({ priority }: { priority: TicketPriority }) {
+  const color = ticketPriorityColors[priority]
+  return (
+    <span
+      className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium capitalize"
+      style={{
+        background: `color-mix(in srgb, ${color} 15%, transparent)`,
+        color,
+      }}
+    >
+      <AlertCircle className="size-3" />
+      {priority}
+    </span>
+  )
+}
+
+function TicketFilterTabs({
+  value,
+  onChange,
+}: {
+  value: TicketStatus | "all"
+  onChange: (v: TicketStatus | "all") => void
+}) {
+  const tabs: { key: TicketStatus | "all"; label: string }[] = [
+    { key: "all", label: "All" },
+    { key: "open", label: "Open" },
+    { key: "in-progress", label: "Active" },
+    { key: "resolved", label: "Resolved" },
+  ]
+  return (
+    <div className="flex gap-1">
+      {tabs.map((t) => (
+        <button
+          key={t.key}
+          onClick={() => onChange(t.key)}
+          className="rounded-md px-2 py-1 text-[10px] font-medium transition-colors"
+          style={{
+            background: value === t.key ? "var(--chat-accent-soft)" : "transparent",
+            color: value === t.key ? "var(--chat-accent)" : "var(--chat-text-tertiary)",
+          }}
+        >
+          {t.label}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+function TicketItem({
+  ticket,
+  isActive,
+  onClick,
+}: {
+  ticket: SupportTicket
+  isActive: boolean
+  onClick: () => void
+}) {
+  const StatusIcon = ticketStatusConfig[ticket.status].icon
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        "flex w-full items-start gap-2.5 border-b border-[var(--chat-border)] px-3 py-2.5 text-left transition-colors",
+        isActive ? "bg-[var(--chat-accent-soft)]" : "hover:bg-[var(--chat-accent-soft)]"
+      )}
+    >
+      <StatusIcon
+        className="mt-0.5 size-3.5 shrink-0"
+        style={{ color: ticketStatusConfig[ticket.status].color }}
+      />
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center justify-between gap-1">
+          <span className="text-[10px] font-mono text-[var(--chat-text-tertiary)]">{ticket.id}</span>
+          <span className="shrink-0 text-[9px] text-[var(--chat-text-tertiary)]">{ticket.createdAt}</span>
+        </div>
+        <p className="mt-0.5 truncate text-[12px] font-medium leading-snug text-[var(--chat-text-primary)]">
+          {ticket.subject}
+        </p>
+        <div className="mt-1 flex items-center gap-1.5">
+          <span className="text-[10px] text-[var(--chat-text-secondary)]">{ticket.customerName}</span>
+          <span
+            className="rounded-full px-1.5 py-0 text-[9px] font-medium"
+            style={{
+              background: `color-mix(in srgb, ${ticketPriorityColors[ticket.priority]} 15%, transparent)`,
+              color: ticketPriorityColors[ticket.priority],
+            }}
+          >
+            {ticket.priority}
+          </span>
+          {ticket.category && (
+            <span className="rounded-full bg-[var(--chat-accent-soft)] px-1.5 py-0 text-[9px] font-medium text-[var(--chat-text-secondary)]">
+              {ticket.category}
+            </span>
+          )}
+        </div>
+      </div>
+      {(ticket.unreadCount ?? 0) > 0 && (
+        <span className="mt-1 flex size-[16px] shrink-0 items-center justify-center rounded-full bg-[var(--chat-red)] text-[9px] font-bold text-white">
+          {ticket.unreadCount! > 99 ? "99+" : ticket.unreadCount}
+        </span>
+      )}
+    </button>
+  )
+}
+
+// ─── Main component ──────────────────────────────────────────────────────────
+
+function SupportTickets({
+  currentUser,
+  theme = "lunar",
+  tickets,
+  activeTicketId,
+  onSelectTicket,
+  messages,
+  typingUsers,
+  onSend,
+  statusFilter: controlledFilter,
+  onStatusFilterChange,
+  title = "Support Tickets",
+  className,
+}: SupportTicketsProps) {
+  const [internalFilter, setInternalFilter] = React.useState<TicketStatus | "all">("all")
+  const filter = controlledFilter ?? internalFilter
+  const setFilter = onStatusFilterChange ?? setInternalFilter
+
+  const filteredTickets = filter === "all" ? tickets : tickets.filter((t) => t.status === filter)
+  const activeTicket = tickets.find((t) => t.id === activeTicketId)
+
+  const openCount = tickets.filter((t) => t.status === "open").length
+  const activeCount = tickets.filter((t) => t.status === "in-progress").length
+
+  const showingTicket = !!activeTicket
+
+  return (
+    <ChatProvider
+      currentUser={currentUser}
+      theme={theme}
+      className="h-full flex flex-col"
+      style={{ height: "100%", display: "flex", flexDirection: "column" }}
+    >
+      <div
+        className={cn("flex flex-1 min-h-0 bg-[var(--chat-bg-app)]", className)}
+        style={{ height: "100%" }}
+      >
+        {/* ── Ticket sidebar ── */}
+        {/* Mobile: full-width list when no ticket selected, hidden when viewing one */}
+        {/* Desktop: always visible at w-[280px] */}
+        <aside
+          className={cn(
+            "flex flex-col border-r border-[var(--chat-border-strong)] bg-[var(--chat-bg-sidebar)] min-h-0",
+            showingTicket
+              ? "hidden md:flex md:w-[280px] md:shrink-0"
+              : "flex w-full md:w-[280px] md:shrink-0"
+          )}
+        >
+          {/* Sidebar header */}
+          <div className="shrink-0 border-b border-[var(--chat-border)] px-3 py-2.5">
+            <div className="mb-2 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Ticket className="size-4 text-[var(--chat-accent)]" />
+                <span className="text-[14px] font-semibold text-[var(--chat-text-primary)]">{title}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                {openCount > 0 && (
+                  <span className="rounded-full bg-[var(--chat-accent-soft)] px-2 py-0.5 text-[10px] font-medium text-[var(--chat-accent)]">
+                    {openCount} open
+                  </span>
+                )}
+                {activeCount > 0 && (
+                  <span className="rounded-full bg-[var(--chat-accent-soft)] px-2 py-0.5 text-[10px] font-medium text-[var(--chat-text-secondary)]">
+                    {activeCount} active
+                  </span>
+                )}
+              </div>
+            </div>
+            <TicketFilterTabs value={filter} onChange={setFilter} />
+          </div>
+
+          {/* Ticket list — scrollable */}
+          <div className="flex-1 overflow-y-auto">
+            {filteredTickets.map((ticket) => (
+              <TicketItem
+                key={ticket.id}
+                ticket={ticket}
+                isActive={ticket.id === activeTicketId}
+                onClick={() => onSelectTicket(ticket.id)}
+              />
+            ))}
+            {filteredTickets.length === 0 && (
+              <div className="px-4 py-6 text-center text-[12px] text-[var(--chat-text-tertiary)]">
+                No tickets found
+              </div>
+            )}
+          </div>
+        </aside>
+
+        {/* ── Main panel ── */}
+        {/* Mobile: hidden when no ticket selected, full-width when viewing one */}
+        {/* Desktop: always visible as flex-1 */}
+        <main
+          className={cn(
+            "flex min-h-0 flex-1 flex-col bg-[var(--chat-bg-main)]",
+            !showingTicket && "hidden md:flex"
+          )}
+        >
+          {activeTicket ? (
+            <>
+              {/* Header with mobile back button */}
+              <div className="shrink-0 flex items-center gap-3 border-b border-[var(--chat-border)] bg-[var(--chat-bg-header)] px-4 py-2.5 backdrop-blur-[20px] backdrop-saturate-[180%]">
+                {/* Mobile back */}
+                <button
+                  onClick={() => onSelectTicket("")}
+                  className="mr-1 text-[var(--chat-text-secondary)] hover:text-[var(--chat-text-primary)] md:hidden"
+                >
+                  <ChevronLeft className="size-5" />
+                </button>
+                <div className="flex size-9 items-center justify-center rounded-full bg-[var(--chat-accent-soft)]">
+                  <User className="size-4 text-[var(--chat-accent)]" />
+                </div>
+                <div className="flex min-w-0 flex-1 flex-col">
+                  <span className="truncate text-[14px] font-semibold tracking-[-0.02em] text-[var(--chat-text-primary)]">
+                    {activeTicket.subject}
+                  </span>
+                  <span className="truncate text-[11px] text-[var(--chat-text-secondary)]">
+                    {activeTicket.id} · {activeTicket.customerName}
+                  </span>
+                </div>
+                <div className="hidden items-center gap-1.5 sm:flex">
+                  <TicketStatusBadge status={activeTicket.status} />
+                  <TicketPriorityBadge priority={activeTicket.priority} />
+                </div>
+              </div>
+              <ChatMessages messages={messages} typingUsers={typingUsers} />
+              <ChatComposer onSend={onSend} placeholder="Reply to ticket..." />
+            </>
+          ) : (
+            <div className="flex flex-1 items-center justify-center">
+              <div className="text-center">
+                <Ticket className="mx-auto mb-3 size-12 text-[var(--chat-text-tertiary)]" />
+                <p className="text-[15px] font-medium text-[var(--chat-text-secondary)]">Select a ticket</p>
+              </div>
+            </div>
+          )}
+        </main>
+      </div>
+    </ChatProvider>
+  )
+}
+
 // ─── Exports ──────────────────────────────────────────────────────────────────
 
 const ChatConversationItem = ConversationItem
@@ -447,6 +801,10 @@ export {
   InlineChat,
   ChatBoard,
   LiveChat,
+  SupportTickets,
+  TicketStatusBadge,
+  TicketPriorityBadge,
+  TicketFilterTabs,
 }
 export type {
   ChatHeaderProps,
@@ -457,4 +815,8 @@ export type {
   Topic,
   ChatBoardProps,
   LiveChatProps,
+  TicketStatus,
+  TicketPriority,
+  SupportTicket,
+  SupportTicketsProps,
 }

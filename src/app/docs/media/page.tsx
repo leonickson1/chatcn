@@ -423,10 +423,10 @@ export default function MediaPage() {
       {/* ---- Navigation ---- */}
       <div className="mt-12 flex items-center justify-between border-t border-[rgba(0,0,0,0.06)] pt-6">
         <Link
-          href="/docs/conversations"
+          href="/docs/tickets"
           className="text-[14px] font-medium text-[#6366F1] hover:underline"
         >
-          &larr; Conversations
+          &larr; Tickets
         </Link>
         <Link
           href="/docs/presence"

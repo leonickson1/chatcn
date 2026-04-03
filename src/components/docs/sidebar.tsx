@@ -28,6 +28,7 @@ const sections: SidebarSection[] = [
       { title: "Reactions", href: "/docs/reactions" },
       { title: "Threads", href: "/docs/threads" },
       { title: "Conversations", href: "/docs/conversations" },
+      { title: "Tickets", href: "/docs/tickets" },
       { title: "Media", href: "/docs/media" },
       { title: "Presence", href: "/docs/presence" },
       { title: "Search", href: "/docs/search" },

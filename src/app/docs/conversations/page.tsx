@@ -445,10 +445,10 @@ export default function ConversationsPage() {
           &larr; Threads
         </Link>
         <Link
-          href="/docs/media"
+          href="/docs/tickets"
           className="text-[14px] font-medium text-[#6366F1] hover:underline"
         >
-          Media &rarr;
+          Tickets &rarr;
         </Link>
       </div>
     </div>
