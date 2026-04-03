@@ -20,6 +20,13 @@ import {
   Headphones,
   MessageSquare,
   Star,
+  Ticket,
+  Clock,
+  AlertCircle,
+  CheckCircle2,
+  Circle,
+  Tag,
+  User,
 } from "lucide-react"
 
 // ─── Sample data ──────────────────────────────────────────────────────────────
@@ -874,6 +881,463 @@ function ThreadDemo({ theme }: { theme: ChatTheme }) {
   )
 }
 
+// ─── TicketsDemo component ──────────────────────────────────────────────────
+
+interface SupportTicket {
+  id: string
+  subject: string
+  customer: string
+  status: "open" | "in-progress" | "resolved"
+  priority: "low" | "medium" | "high" | "urgent"
+  category: string
+  created: string
+}
+
+const ticketsList: SupportTicket[] = [
+  { id: "TK-1042", subject: "Cannot export data to CSV", customer: "Emma Wilson", status: "open", priority: "high", category: "Bug", created: "10m ago" },
+  { id: "TK-1041", subject: "Billing shows wrong amount", customer: "James Park", status: "in-progress", priority: "urgent", category: "Billing", created: "25m ago" },
+  { id: "TK-1040", subject: "How to set up SSO?", customer: "Priya Sharma", status: "open", priority: "medium", category: "Question", created: "1h ago" },
+  { id: "TK-1039", subject: "API rate limit too low", customer: "Carlos Ruiz", status: "in-progress", priority: "medium", category: "Feature", created: "2h ago" },
+  { id: "TK-1038", subject: "Dashboard loads slowly", customer: "Aisha Johnson", status: "resolved", priority: "low", category: "Bug", created: "3h ago" },
+  { id: "TK-1037", subject: "Need to add team members", customer: "Liam O'Brien", status: "resolved", priority: "low", category: "Question", created: "5h ago" },
+]
+
+function createTicketMessages(now: number): Record<string, ChatMessageData[]> {
+  return {
+    "TK-1042": [
+      {
+        id: "tk1042-1",
+        senderId: "customer-emma",
+        senderName: "Emma Wilson",
+        timestamp: now - 10 * minute,
+        text: "Hi, I'm trying to export my analytics data to CSV but the button just spins and nothing downloads. I've tried Chrome and Firefox.",
+        status: "read",
+      },
+      {
+        id: "tk1042-2",
+        senderId: "agent-1",
+        senderName: "Support Agent",
+        timestamp: now - 8 * minute,
+        text: "Hi Emma! Sorry about that. Let me check your account. Can you tell me roughly how many rows of data you're trying to export?",
+        status: "read",
+      },
+      {
+        id: "tk1042-3",
+        senderId: "customer-emma",
+        senderName: "Emma Wilson",
+        timestamp: now - 7 * minute,
+        text: "It's about 50,000 rows — the last 6 months of data.",
+        status: "read",
+      },
+      {
+        id: "tk1042-4",
+        senderId: "agent-1",
+        senderName: "Support Agent",
+        timestamp: now - 5 * minute,
+        text: "That's the issue — exports over 10k rows time out in the browser. I'm going to queue a background export for you. You'll get an email with the download link in about 2 minutes.",
+        status: "read",
+      },
+      {
+        id: "tk1042-sys",
+        senderId: "system",
+        senderName: "System",
+        timestamp: now - 4 * minute,
+        isSystem: true,
+        text: "Priority changed from Medium to High",
+      },
+      {
+        id: "tk1042-5",
+        senderId: "customer-emma",
+        senderName: "Emma Wilson",
+        timestamp: now - 3 * minute,
+        text: "Oh that's great! Will the background export include the same filters I had applied?",
+        status: "read",
+        reactions: [{ emoji: "\u{1F44D}", userIds: ["agent-1"], count: 1 }],
+      },
+    ],
+    "TK-1041": [
+      {
+        id: "tk1041-1",
+        senderId: "customer-james",
+        senderName: "James Park",
+        timestamp: now - 25 * minute,
+        text: "My invoice shows $299 but I'm on the $199/mo plan. Can you check this?",
+        status: "read",
+        files: [
+          { name: "invoice-march-2026.pdf", size: 142_000, type: "application/pdf", url: "#" },
+        ],
+      },
+      {
+        id: "tk1041-sys",
+        senderId: "system",
+        senderName: "System",
+        timestamp: now - 24 * minute,
+        isSystem: true,
+        text: "Ticket assigned to Sarah from Billing Team",
+      },
+      {
+        id: "tk1041-2",
+        senderId: "agent-2",
+        senderName: "Sarah (Billing)",
+        timestamp: now - 20 * minute,
+        text: "Hi James, I can see the discrepancy. It looks like an add-on for extra storage was applied on March 1st. Let me pull up the details.",
+        status: "read",
+      },
+      {
+        id: "tk1041-3",
+        senderId: "agent-2",
+        senderName: "Sarah (Billing)",
+        timestamp: now - 18 * minute,
+        text: "Found it — there was an automatic upgrade to 500GB storage that triggered a $100 add-on charge. I don't see this was authorized by you, so I'll issue a refund right away.",
+        status: "read",
+      },
+      {
+        id: "tk1041-4",
+        senderId: "customer-james",
+        senderName: "James Park",
+        timestamp: now - 15 * minute,
+        text: "Yes please! I definitely didn't authorize that. Can you also make sure it doesn't happen again next month?",
+        status: "read",
+      },
+      {
+        id: "tk1041-5",
+        senderId: "agent-2",
+        senderName: "Sarah (Billing)",
+        timestamp: now - 12 * minute,
+        text: "Absolutely. I've disabled the auto-upgrade and processed the $100 refund. It should appear on your statement within 3-5 business days.",
+        status: "read",
+        reactions: [{ emoji: "\u{1F64F}", userIds: ["customer-james"], count: 1 }],
+      },
+    ],
+    "TK-1040": [
+      {
+        id: "tk1040-1",
+        senderId: "customer-priya",
+        senderName: "Priya Sharma",
+        timestamp: now - hour,
+        text: "We'd like to set up SSO with Okta for our team of 50. Is there a guide for this?",
+        status: "read",
+      },
+      {
+        id: "tk1040-2",
+        senderId: "agent-1",
+        senderName: "Support Agent",
+        timestamp: now - 55 * minute,
+        text: "Hi Priya! Yes, we have a step-by-step guide for Okta SSO integration. Here's what you'll need:",
+        status: "read",
+        linkPreview: {
+          url: "https://docs.example.com/sso/okta-setup",
+          title: "Okta SSO Setup Guide",
+          description: "Step-by-step instructions for configuring SAML-based SSO with Okta for your organization.",
+          image: "",
+        },
+      },
+      {
+        id: "tk1040-3",
+        senderId: "agent-1",
+        senderName: "Support Agent",
+        timestamp: now - 54 * minute,
+        text: "You'll need your Okta admin credentials and about 15 minutes. Let me know if you hit any snags!",
+        status: "read",
+      },
+    ],
+    "TK-1039": [
+      {
+        id: "tk1039-1",
+        senderId: "customer-carlos",
+        senderName: "Carlos Ruiz",
+        timestamp: now - 2 * hour,
+        text: "Our API integration is hitting the rate limit constantly. We're on the Pro plan — is there a way to increase it?",
+        status: "read",
+        code: {
+          language: "json",
+          code: `{\n  "error": "rate_limit_exceeded",\n  "limit": "1000/min",\n  "current": "1247/min",\n  "retry_after": 23\n}`,
+        },
+      },
+      {
+        id: "tk1039-2",
+        senderId: "agent-1",
+        senderName: "Support Agent",
+        timestamp: now - hour - 45 * minute,
+        text: "Hi Carlos! I can see you're consistently hitting the 1000/min limit. I've temporarily bumped you to 2500/min while we review a permanent increase.",
+        status: "read",
+      },
+    ],
+    "TK-1038": [
+      {
+        id: "tk1038-1",
+        senderId: "customer-aisha",
+        senderName: "Aisha Johnson",
+        timestamp: now - 3 * hour,
+        text: "The main dashboard is taking 15+ seconds to load. It used to be instant.",
+        status: "read",
+      },
+      {
+        id: "tk1038-2",
+        senderId: "agent-1",
+        senderName: "Support Agent",
+        timestamp: now - 2 * hour - 45 * minute,
+        text: "We identified a database query issue affecting dashboard load times. A fix was deployed 10 minutes ago. Can you try refreshing?",
+        status: "read",
+      },
+      {
+        id: "tk1038-3",
+        senderId: "customer-aisha",
+        senderName: "Aisha Johnson",
+        timestamp: now - 2 * hour - 30 * minute,
+        text: "Loading in under 2 seconds now. Thanks for the quick fix!",
+        status: "read",
+        reactions: [{ emoji: "\u{1F389}", userIds: ["agent-1"], count: 1 }],
+      },
+      {
+        id: "tk1038-sys",
+        senderId: "system",
+        senderName: "System",
+        timestamp: now - 2 * hour - 25 * minute,
+        isSystem: true,
+        text: "Ticket resolved by Support Agent",
+      },
+    ],
+    "TK-1037": [
+      {
+        id: "tk1037-1",
+        senderId: "customer-liam",
+        senderName: "Liam O'Brien",
+        timestamp: now - 5 * hour,
+        text: "How do I add more team members to my workspace? I can't find the setting.",
+        status: "read",
+      },
+      {
+        id: "tk1037-2",
+        senderId: "agent-1",
+        senderName: "Support Agent",
+        timestamp: now - 4 * hour - 50 * minute,
+        text: "Go to Settings \u2192 Team \u2192 Invite Members. You can add up to 25 members on your current plan. Need a walkthrough?",
+        status: "read",
+      },
+      {
+        id: "tk1037-3",
+        senderId: "customer-liam",
+        senderName: "Liam O'Brien",
+        timestamp: now - 4 * hour - 40 * minute,
+        text: "Found it, thanks! Super easy.",
+        status: "read",
+      },
+      {
+        id: "tk1037-sys",
+        senderId: "system",
+        senderName: "System",
+        timestamp: now - 4 * hour - 35 * minute,
+        isSystem: true,
+        text: "Ticket resolved by Support Agent",
+      },
+    ],
+  }
+}
+
+const priorityColors: Record<string, string> = {
+  urgent: "var(--chat-red)",
+  high: "var(--chat-orange)",
+  medium: "var(--chat-accent)",
+  low: "var(--chat-text-tertiary)",
+}
+
+const statusConfig: Record<string, { icon: typeof Circle; label: string; color: string }> = {
+  open: { icon: Circle, label: "Open", color: "var(--chat-orange)" },
+  "in-progress": { icon: Clock, label: "In Progress", color: "var(--chat-accent)" },
+  resolved: { icon: CheckCircle2, label: "Resolved", color: "var(--chat-green)" },
+}
+
+function TicketsDemo({ theme }: { theme: ChatTheme }) {
+  const [activeTicketId, setActiveTicketId] = useState("TK-1042")
+  const [messages, setMessages] = useState<Record<string, ChatMessageData[]>>(() => createTicketMessages(Date.now()))
+  const [filterStatus, setFilterStatus] = useState<"all" | "open" | "in-progress" | "resolved">("all")
+
+  const activeTicket = ticketsList.find((t) => t.id === activeTicketId) || ticketsList[0]
+  const activeMessages = useMemo(() => messages[activeTicketId] || [], [messages, activeTicketId])
+
+  const filteredTickets = useMemo(() => {
+    if (filterStatus === "all") return ticketsList
+    return ticketsList.filter((t) => t.status === filterStatus)
+  }, [filterStatus])
+
+  const handleSend = useCallback(
+    (text: string) => {
+      const newMessage: ChatMessageData = {
+        id: `tk-${Date.now()}`,
+        senderId: currentUser.id,
+        senderName: "Support Agent",
+        timestamp: Date.now(),
+        text,
+        status: "sent",
+      }
+      setMessages((prev) => ({
+        ...prev,
+        [activeTicketId]: [...(prev[activeTicketId] || []), newMessage],
+      }))
+      setTimeout(() => {
+        setMessages((prev) => ({
+          ...prev,
+          [activeTicketId]: (prev[activeTicketId] || []).map((m) =>
+            m.id === newMessage.id ? { ...m, status: "delivered" as const } : m
+          ),
+        }))
+      }, 800)
+    },
+    [activeTicketId]
+  )
+
+  const openCount = ticketsList.filter((t) => t.status === "open").length
+  const inProgressCount = ticketsList.filter((t) => t.status === "in-progress").length
+
+  return (
+    <ChatProvider
+      currentUser={currentUser}
+      theme={theme}
+      className="h-full flex flex-col"
+      style={{ height: "100%", display: "flex", flexDirection: "column" }}
+    >
+      <div className="flex h-full">
+        {/* Ticket sidebar */}
+        <div className="hidden md:flex w-[280px] shrink-0 border-r border-[var(--chat-border-strong)] bg-[var(--chat-bg-sidebar)] flex-col">
+          {/* Sidebar header */}
+          <div className="px-3 py-2.5 border-b border-[var(--chat-border)]">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <Ticket className="size-4 text-[var(--chat-accent)]" />
+                <span className="text-[14px] font-semibold text-[var(--chat-text-primary)]">Tickets</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="flex items-center gap-1 rounded-full bg-[var(--chat-accent-soft)] px-2 py-0.5 text-[10px] font-medium text-[var(--chat-accent)]">
+                  {openCount} open
+                </span>
+                <span className="flex items-center gap-1 rounded-full bg-[var(--chat-accent-soft)] px-2 py-0.5 text-[10px] font-medium text-[var(--chat-text-secondary)]">
+                  {inProgressCount} active
+                </span>
+              </div>
+            </div>
+            {/* Status filter */}
+            <div className="flex gap-1">
+              {(["all", "open", "in-progress", "resolved"] as const).map((s) => (
+                <button
+                  key={s}
+                  onClick={() => setFilterStatus(s)}
+                  className="rounded-md px-2 py-1 text-[10px] font-medium transition-colors capitalize"
+                  style={{
+                    background: filterStatus === s ? "var(--chat-accent-soft)" : "transparent",
+                    color: filterStatus === s ? "var(--chat-accent)" : "var(--chat-text-tertiary)",
+                  }}
+                >
+                  {s === "in-progress" ? "Active" : s}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Ticket list */}
+          <div className="flex-1 overflow-y-auto py-1">
+            {filteredTickets.map((ticket) => {
+              const StatusIcon = statusConfig[ticket.status].icon
+              return (
+                <button
+                  key={ticket.id}
+                  onClick={() => setActiveTicketId(ticket.id)}
+                  className="flex w-full items-start gap-2.5 px-3 py-2.5 text-left transition-colors border-b border-[var(--chat-border)]"
+                  style={{
+                    background: activeTicketId === ticket.id ? "var(--chat-accent-soft)" : "transparent",
+                  }}
+                >
+                  <StatusIcon
+                    className="size-3.5 mt-0.5 shrink-0"
+                    style={{ color: statusConfig[ticket.status].color }}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-1">
+                      <span className="text-[10px] font-mono text-[var(--chat-text-tertiary)]">{ticket.id}</span>
+                      <span className="text-[9px] text-[var(--chat-text-tertiary)] shrink-0">{ticket.created}</span>
+                    </div>
+                    <p className="text-[12px] font-medium text-[var(--chat-text-primary)] truncate leading-snug mt-0.5">
+                      {ticket.subject}
+                    </p>
+                    <div className="flex items-center gap-1.5 mt-1">
+                      <span className="text-[10px] text-[var(--chat-text-secondary)]">{ticket.customer}</span>
+                      <span
+                        className="rounded-full px-1.5 py-0 text-[9px] font-medium"
+                        style={{
+                          background: `color-mix(in srgb, ${priorityColors[ticket.priority]} 15%, transparent)`,
+                          color: priorityColors[ticket.priority],
+                        }}
+                      >
+                        {ticket.priority}
+                      </span>
+                      <span className="rounded-full bg-[var(--chat-accent-soft)] px-1.5 py-0 text-[9px] font-medium text-[var(--chat-text-secondary)]">
+                        {ticket.category}
+                      </span>
+                    </div>
+                  </div>
+                </button>
+              )
+            })}
+            {filteredTickets.length === 0 && (
+              <div className="px-4 py-6 text-center text-[12px] text-[var(--chat-text-tertiary)]">
+                No tickets found
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Main ticket area */}
+        <div className="flex-1 flex flex-col bg-[var(--chat-bg-main)] min-w-0">
+          {/* Ticket header */}
+          <div className="flex items-center gap-3 border-b border-[var(--chat-border)] bg-[var(--chat-bg-header)] px-4 py-2.5 backdrop-blur-[20px]">
+            <div className="flex size-9 items-center justify-center rounded-full bg-[var(--chat-accent-soft)]">
+              <User className="size-4 text-[var(--chat-accent)]" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="text-[14px] font-semibold text-[var(--chat-text-primary)] truncate">{activeTicket.subject}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-mono text-[var(--chat-text-tertiary)]">{activeTicket.id}</span>
+                <span className="text-[10px] text-[var(--chat-text-tertiary)]">\u00B7</span>
+                <span className="text-[11px] text-[var(--chat-text-secondary)]">{activeTicket.customer}</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              {/* Status badge */}
+              <span
+                className="flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-medium"
+                style={{
+                  background: `color-mix(in srgb, ${statusConfig[activeTicket.status].color} 15%, transparent)`,
+                  color: statusConfig[activeTicket.status].color,
+                }}
+              >
+                {(() => { const I = statusConfig[activeTicket.status].icon; return <I className="size-3" /> })()}
+                {statusConfig[activeTicket.status].label}
+              </span>
+              {/* Priority badge */}
+              <span
+                className="flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-medium"
+                style={{
+                  background: `color-mix(in srgb, ${priorityColors[activeTicket.priority]} 15%, transparent)`,
+                  color: priorityColors[activeTicket.priority],
+                }}
+              >
+                <AlertCircle className="size-3" />
+                {activeTicket.priority}
+              </span>
+            </div>
+          </div>
+
+          {/* Messages + Composer */}
+          <ChatMessages messages={activeMessages} />
+          <ChatComposer onSend={handleSend} placeholder="Reply to ticket..." />
+        </div>
+      </div>
+    </ChatProvider>
+  )
+}
+
 // ─── Features data ────────────────────────────────────────────────────────────
 
 const features = [
@@ -1459,7 +1923,287 @@ export default function ThreadView() {
 }`
 }
 
-function DemoCodeBlock({ mode, theme }: { mode: "messaging" | "support" | "thread"; theme: ChatTheme }) {
+function getTicketsCode(theme: ChatTheme) {
+  return `"use client"
+
+import { useState, useCallback, useMemo } from "react"
+import {
+  ChatProvider,
+  ChatMessages,
+  ChatComposer,
+} from "@/components/ui/chat"
+import type { ChatUser, ChatMessageData } from "@/components/ui/chat"
+import {
+  Ticket,
+  Clock,
+  AlertCircle,
+  CheckCircle2,
+  Circle,
+  User,
+} from "lucide-react"
+
+const agent: ChatUser = { id: "agent-1", name: "Support Agent", status: "online" }
+
+interface SupportTicket {
+  id: string
+  subject: string
+  customer: string
+  status: "open" | "in-progress" | "resolved"
+  priority: "low" | "medium" | "high" | "urgent"
+  category: string
+  created: string
+}
+
+const tickets: SupportTicket[] = [
+  {
+    id: "TK-1042",
+    subject: "Cannot export data to CSV",
+    customer: "Emma Wilson",
+    status: "open",
+    priority: "high",
+    category: "Bug",
+    created: "10m ago",
+  },
+  {
+    id: "TK-1041",
+    subject: "Billing shows wrong amount",
+    customer: "James Park",
+    status: "in-progress",
+    priority: "urgent",
+    category: "Billing",
+    created: "25m ago",
+  },
+  {
+    id: "TK-1040",
+    subject: "How to set up SSO?",
+    customer: "Priya Sharma",
+    status: "open",
+    priority: "medium",
+    category: "Question",
+    created: "1h ago",
+  },
+]
+
+const ticketMessages: Record<string, ChatMessageData[]> = {
+  "TK-1042": [
+    {
+      id: "tk1042-1",
+      senderId: "customer-emma",
+      senderName: "Emma Wilson",
+      text: "I'm trying to export analytics data to CSV but the button just spins.",
+      timestamp: new Date(Date.now() - 600000),
+      status: "read",
+    },
+    {
+      id: "tk1042-2",
+      senderId: "agent-1",
+      senderName: "Support Agent",
+      text: "How many rows of data are you exporting? Exports over 10k rows time out in the browser.",
+      timestamp: new Date(Date.now() - 480000),
+      status: "read",
+    },
+    {
+      id: "tk1042-3",
+      senderId: "customer-emma",
+      senderName: "Emma Wilson",
+      text: "About 50,000 rows — the last 6 months.",
+      timestamp: new Date(Date.now() - 420000),
+      status: "read",
+    },
+    {
+      id: "tk1042-sys",
+      senderId: "system",
+      senderName: "System",
+      timestamp: new Date(Date.now() - 240000),
+      isSystem: true,
+      text: "Priority changed from Medium to High",
+    },
+  ],
+  "TK-1041": [
+    {
+      id: "tk1041-1",
+      senderId: "customer-james",
+      senderName: "James Park",
+      text: "My invoice shows $299 but I'm on the $199/mo plan.",
+      timestamp: new Date(Date.now() - 1500000),
+      status: "read",
+      files: [
+        {
+          name: "invoice-march-2026.pdf",
+          size: 142000,
+          type: "application/pdf",
+          url: "/uploads/invoice.pdf",
+        },
+      ],
+    },
+    {
+      id: "tk1041-sys",
+      senderId: "system",
+      senderName: "System",
+      timestamp: new Date(Date.now() - 1440000),
+      isSystem: true,
+      text: "Ticket assigned to Sarah from Billing Team",
+    },
+  ],
+  "TK-1040": [
+    {
+      id: "tk1040-1",
+      senderId: "customer-priya",
+      senderName: "Priya Sharma",
+      text: "We'd like to set up SSO with Okta for our team of 50.",
+      timestamp: new Date(Date.now() - 3600000),
+      status: "read",
+    },
+  ],
+}
+
+const priorityColors: Record<string, string> = {
+  urgent: "var(--chat-red)",
+  high: "var(--chat-orange)",
+  medium: "var(--chat-accent)",
+  low: "var(--chat-text-tertiary)",
+}
+
+const statusConfig = {
+  open: { icon: Circle, label: "Open", color: "var(--chat-orange)" },
+  "in-progress": { icon: Clock, label: "In Progress", color: "var(--chat-accent)" },
+  resolved: { icon: CheckCircle2, label: "Resolved", color: "var(--chat-green)" },
+}
+
+export default function SupportTickets() {
+  const [activeTicketId, setActiveTicketId] = useState("TK-1042")
+  const [messages, setMessages] = useState(ticketMessages)
+
+  const activeTicket = tickets.find((t) => t.id === activeTicketId) || tickets[0]
+  const activeMessages = useMemo(
+    () => messages[activeTicketId] || [],
+    [messages, activeTicketId]
+  )
+
+  const handleSend = useCallback(
+    (text: string) => {
+      setMessages((prev) => ({
+        ...prev,
+        [activeTicketId]: [
+          ...(prev[activeTicketId] || []),
+          {
+            id: crypto.randomUUID(),
+            senderId: agent.id,
+            senderName: agent.name,
+            text,
+            timestamp: new Date(),
+            status: "sent" as const,
+          },
+        ],
+      }))
+    },
+    [activeTicketId]
+  )
+
+  return (
+    <ChatProvider currentUser={agent} theme="${theme}">
+      <div className="flex h-screen">
+        {/* Ticket sidebar */}
+        <aside className="w-72 shrink-0 border-r border-[var(--chat-border-strong)]
+                          bg-[var(--chat-bg-sidebar)] flex flex-col">
+          <div className="px-3 py-2.5 border-b border-[var(--chat-border)]">
+            <div className="flex items-center gap-2">
+              <Ticket className="size-4 text-[var(--chat-accent)]" />
+              <span className="text-sm font-semibold text-[var(--chat-text-primary)]">
+                Tickets
+              </span>
+            </div>
+          </div>
+          <div className="flex-1 overflow-y-auto">
+            {tickets.map((ticket) => {
+              const StatusIcon = statusConfig[ticket.status].icon
+              return (
+                <button
+                  key={ticket.id}
+                  onClick={() => setActiveTicketId(ticket.id)}
+                  className="w-full text-left px-3 py-2.5 border-b
+                             border-[var(--chat-border)] transition-colors"
+                  style={{
+                    background:
+                      activeTicketId === ticket.id
+                        ? "var(--chat-accent-soft)"
+                        : "transparent",
+                  }}
+                >
+                  <div className="flex items-center gap-1.5">
+                    <StatusIcon
+                      className="size-3"
+                      style={{ color: statusConfig[ticket.status].color }}
+                    />
+                    <span className="text-[10px] font-mono
+                                     text-[var(--chat-text-tertiary)]">
+                      {ticket.id}
+                    </span>
+                    <span className="ml-auto text-[9px]
+                                     text-[var(--chat-text-tertiary)]">
+                      {ticket.created}
+                    </span>
+                  </div>
+                  <p className="text-xs font-medium truncate mt-0.5
+                                text-[var(--chat-text-primary)]">
+                    {ticket.subject}
+                  </p>
+                  <span className="text-[10px] text-[var(--chat-text-secondary)]">
+                    {ticket.customer}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+        </aside>
+
+        {/* Ticket detail + chat */}
+        <main className="flex-1 flex flex-col bg-[var(--chat-bg-main)]">
+          {/* Header */}
+          <div className="flex items-center gap-3 border-b
+                          border-[var(--chat-border)] px-4 py-2.5
+                          bg-[var(--chat-bg-header)]">
+            <User className="size-5 text-[var(--chat-accent)]" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold truncate
+                            text-[var(--chat-text-primary)]">
+                {activeTicket.subject}
+              </p>
+              <p className="text-[11px] text-[var(--chat-text-secondary)]">
+                {activeTicket.id} · {activeTicket.customer}
+              </p>
+            </div>
+            {/* Status + priority badges */}
+            <span
+              className="rounded-full px-2 py-0.5 text-[10px] font-medium"
+              style={{
+                background: \\\`color-mix(in srgb, \\\${statusConfig[activeTicket.status].color} 15%, transparent)\\\`,
+                color: statusConfig[activeTicket.status].color,
+              }}
+            >
+              {statusConfig[activeTicket.status].label}
+            </span>
+            <span
+              className="rounded-full px-2 py-0.5 text-[10px] font-medium capitalize"
+              style={{
+                background: \\\`color-mix(in srgb, \\\${priorityColors[activeTicket.priority]} 15%, transparent)\\\`,
+                color: priorityColors[activeTicket.priority],
+              }}
+            >
+              {activeTicket.priority}
+            </span>
+          </div>
+
+          <ChatMessages messages={activeMessages} />
+          <ChatComposer onSend={handleSend} placeholder="Reply to ticket..." />
+        </main>
+      </div>
+    </ChatProvider>
+  )
+}`
+}
+
+function DemoCodeBlock({ mode, theme }: { mode: "messaging" | "support" | "thread" | "tickets"; theme: ChatTheme }) {
   const [showCode, setShowCode] = useState(false)
   const [codeCopied, setCodeCopied] = useState(false)
 
@@ -1467,12 +2211,16 @@ function DemoCodeBlock({ mode, theme }: { mode: "messaging" | "support" | "threa
     ? getMessagingCode(theme)
     : mode === "support"
     ? getSupportCode(theme)
+    : mode === "tickets"
+    ? getTicketsCode(theme)
     : getThreadCode(theme)
 
   const fileName = mode === "messaging"
     ? "messaging-app.tsx"
     : mode === "support"
     ? "support-widget.tsx"
+    : mode === "tickets"
+    ? "support-tickets.tsx"
     : "thread-view.tsx"
 
   return (
@@ -1521,7 +2269,7 @@ const INSTALL_CMD = "npx shadcn@latest add https://raw.githubusercontent.com/leo
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function HomePage() {
-  const [demoMode, setDemoMode] = useState<"messaging" | "support" | "thread">("messaging")
+  const [demoMode, setDemoMode] = useState<"messaging" | "support" | "thread" | "tickets">("messaging")
   const [demoTheme, setDemoTheme] = useState<ChatTheme>("lunar")
   const [copied, setCopied] = useState(false)
 
@@ -1535,6 +2283,7 @@ export default function HomePage() {
   const modes = [
     { key: "messaging" as const, label: "Messaging" },
     { key: "support" as const, label: "Support" },
+    { key: "tickets" as const, label: "Tickets" },
     { key: "thread" as const, label: "Thread" },
   ]
 
@@ -1653,6 +2402,8 @@ export default function HomePage() {
               <MessagingDemo theme={demoTheme} />
             ) : demoMode === "support" ? (
               <SupportDemo theme={demoTheme} />
+            ) : demoMode === "tickets" ? (
+              <TicketsDemo theme={demoTheme} />
             ) : (
               <ThreadDemo theme={demoTheme} />
             )}
